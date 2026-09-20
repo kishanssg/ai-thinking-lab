@@ -12,7 +12,7 @@ ChatGPT and OpenAI Codex assist with research planning, implementation, testing,
 
 | Experiment | Research question | Implementation |
 |---|---|---|
-| [001: Memory Reliability](experiments/001-memory-reliability/README.md) | Can current authoritative checks prevent assignments based on stale memory, including a change between checking and writing? | Deterministic Python/SQLite simulation; six synthetic cases, four workflows, eight tests |
+| [001: Memory Reliability](experiments/001-memory-reliability/README.md) · [visual results](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/) | Can current authoritative checks prevent assignments based on stale memory, including a change between checking and writing? | Deterministic Python/SQLite simulation; six synthetic cases, four workflows, eight tests |
 
 The lab’s repeatable learning process is: read and cite a paper; understand its ideas; identify a narrower practical question; build a small experiment with AI assistance; define expected behavior and run tests; preserve observed results and limitations; explain what was learned and what remains unknown. Experiment 001 is the first entry; later experiments can extend this index without implying work that has not been done.
 
@@ -31,7 +31,7 @@ The runner saves 24 task traces and computed summaries in [results.json](experim
 
 ## Visual results
 
-View the [visual results page](https://kishanssg.github.io/ai-thinking-lab/) on GitHub Pages, or open [docs/index.html](docs/index.html) locally for a self-contained responsive page.
+View the [AI Thinking Lab homepage](https://kishanssg.github.io/ai-thinking-lab/) and the dedicated [Experiment 001 visual results page](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/). Open [docs/index.html](docs/index.html) locally for the homepage.
 
 ![Actual desktop capture of Experiment 001, showing invalid commits and legitimate completion side by side](docs/assets/experiment-001-desktop.png)
 
