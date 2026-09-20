@@ -1,0 +1,8 @@
+[
+  {"id":"eligible_unchanged","memory":true,"initial":true,"commit_state":true,"lookup_fails":false,"expected":{"A":[true,true],"B":[true,true],"C":[true,true],"D":[true,true]}},
+  {"id":"stale_true","memory":true,"initial":false,"commit_state":false,"lookup_fails":false,"expected":{"A":[true,true],"B":[false,false],"C":[false,false],"D":[false,false]}},
+  {"id":"stale_false","memory":false,"initial":true,"commit_state":true,"lookup_fails":false,"expected":{"A":[false,false],"B":[true,true],"C":[true,true],"D":[true,true]}},
+  {"id":"worker_missing","memory":true,"initial":null,"commit_state":null,"lookup_fails":false,"expected":{"A":[true,true],"B":[false,false],"C":[false,false],"D":[false,false]}},
+  {"id":"lookup_fails","memory":true,"initial":true,"commit_state":true,"lookup_fails":true,"expected":{"A":[true,true],"B":[false,false],"C":[false,false],"D":[false,false]}},
+  {"id":"eligibility_flip","memory":true,"initial":true,"commit_state":false,"lookup_fails":false,"expected":{"A":[true,true],"B":[true,true],"C":[true,true],"D":[true,false]}}
+]

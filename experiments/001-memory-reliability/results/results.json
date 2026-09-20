@@ -1,0 +1,1132 @@
+{
+  "experiment": "001",
+  "simulation": true,
+  "environment": {
+    "python": "3.13.2",
+    "platform": "Darwin",
+    "machine": "arm64",
+    "sqlite": "3.49.1"
+  },
+  "command": "python3 experiments/001-memory-reliability/experiment.py",
+  "generated_at_utc": "2026-09-20T05:43:09.246105+00:00",
+  "runs": [
+    {
+      "scenario": "eligible_unchanged",
+      "approach": "A",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 232666,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "memory_only",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligible_unchanged",
+      "approach": "B",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 102000,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligible_unchanged",
+      "approach": "C",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 84958,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligible_unchanged",
+      "approach": "D",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 107958,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": true,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "stale_true",
+      "approach": "A",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 79916,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": false,
+          "memory": true
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "memory_only",
+          "ground_truth": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": false
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "stale_true",
+      "approach": "B",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 66125,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": false,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "stale_true",
+      "approach": "C",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 62625,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": false,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "stale_true",
+      "approach": "D",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 60708,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": false,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "stale_false",
+      "approach": "A",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 59041,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": false
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "memory_only",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "refusal",
+          "reason": "memory_only"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "stale_false",
+      "approach": "B",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 69709,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": false
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "stale_false",
+      "approach": "C",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 70458,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": false
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "stale_false",
+      "approach": "D",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 72333,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": false
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": true,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "worker_missing",
+      "approach": "A",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 79958,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": null,
+          "memory": true
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "memory_only",
+          "ground_truth": null
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": null
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": null
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "worker_missing",
+      "approach": "B",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 76333,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": null,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": null
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": null
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "worker_missing",
+      "approach": "C",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 54667,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": null,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": null
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": null
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "worker_missing",
+      "approach": "D",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 68500,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": null,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "ineligible_or_missing",
+          "ground_truth": null
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": null
+        },
+        {
+          "kind": "refusal",
+          "reason": "ineligible_or_missing"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "lookup_fails",
+      "approach": "A",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 68916,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "memory_only",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": true
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "lookup_fails",
+      "approach": "B",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 62459,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "lookup_error",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "refusal",
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "lookup_fails",
+      "approach": "C",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 59750,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "lookup_error",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "refusal",
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "lookup_fails",
+      "approach": "D",
+      "recommended": false,
+      "committed": false,
+      "latency_ns": 58292,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": false,
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "decision",
+          "recommended": false,
+          "reason": "lookup_error",
+          "ground_truth": true
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": true
+        },
+        {
+          "kind": "refusal",
+          "reason": "lookup_error"
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    },
+    {
+      "scenario": "eligibility_flip",
+      "approach": "A",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 73292,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "memory_only",
+          "ground_truth": true
+        },
+        {
+          "kind": "state_change",
+          "reason": "injected_before_commit",
+          "state": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": false
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligibility_flip",
+      "approach": "B",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 73083,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "state_change",
+          "reason": "injected_before_commit",
+          "state": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": false
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligibility_flip",
+      "approach": "C",
+      "recommended": true,
+      "committed": true,
+      "latency_ns": 84458,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "state_change",
+          "reason": "injected_before_commit",
+          "state": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": true,
+          "guarded": false,
+          "reason": "assigned",
+          "ground_truth": false
+        },
+        {
+          "kind": "final",
+          "assignment_count": 1
+        }
+      ]
+    },
+    {
+      "scenario": "eligibility_flip",
+      "approach": "D",
+      "recommended": true,
+      "committed": false,
+      "latency_ns": 78792,
+      "events": [
+        {
+          "kind": "ground_truth",
+          "phase": "initial",
+          "state": true,
+          "memory": true
+        },
+        {
+          "kind": "verification",
+          "eligible": true,
+          "reason": "eligible"
+        },
+        {
+          "kind": "decision",
+          "recommended": true,
+          "reason": "eligible",
+          "ground_truth": true
+        },
+        {
+          "kind": "state_change",
+          "reason": "injected_before_commit",
+          "state": false
+        },
+        {
+          "kind": "ground_truth",
+          "phase": "commit",
+          "state": false
+        },
+        {
+          "kind": "commit_attempt",
+          "committed": false,
+          "guarded": true,
+          "reason": "ineligible_or_missing",
+          "ground_truth": false
+        },
+        {
+          "kind": "final",
+          "assignment_count": 0
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "A": {
+      "tasks": 6,
+      "recommendations": 5,
+      "committed_assignments": 5,
+      "commit_attempts": 5,
+      "incorrect_affirmative_recommendations": {
+        "numerator": 2,
+        "denominator": 6,
+        "rate": 0.3333333333333333
+      },
+      "invalid_commits": {
+        "numerator": 3,
+        "denominator": 6,
+        "rate": 0.5
+      },
+      "valid_task_completion": {
+        "numerator": 2,
+        "denominator": 3,
+        "rate": 0.6666666666666666
+      },
+      "unnecessary_refusals": {
+        "numerator": 1,
+        "denominator": 3,
+        "rate": 0.3333333333333333
+      },
+      "verification_rate": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "tool_calls": 5,
+      "latency_ns": {
+        "min": 59041,
+        "max": 232666,
+        "mean": 98964.83333333333
+      }
+    },
+    "B": {
+      "tasks": 6,
+      "recommendations": 3,
+      "committed_assignments": 3,
+      "commit_attempts": 3,
+      "incorrect_affirmative_recommendations": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "invalid_commits": {
+        "numerator": 1,
+        "denominator": 6,
+        "rate": 0.16666666666666666
+      },
+      "valid_task_completion": {
+        "numerator": 2,
+        "denominator": 3,
+        "rate": 0.6666666666666666
+      },
+      "unnecessary_refusals": {
+        "numerator": 1,
+        "denominator": 3,
+        "rate": 0.3333333333333333
+      },
+      "verification_rate": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "tool_calls": 9,
+      "latency_ns": {
+        "min": 62459,
+        "max": 102000,
+        "mean": 74951.5
+      }
+    },
+    "C": {
+      "tasks": 6,
+      "recommendations": 3,
+      "committed_assignments": 3,
+      "commit_attempts": 3,
+      "incorrect_affirmative_recommendations": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "invalid_commits": {
+        "numerator": 1,
+        "denominator": 6,
+        "rate": 0.16666666666666666
+      },
+      "valid_task_completion": {
+        "numerator": 2,
+        "denominator": 3,
+        "rate": 0.6666666666666666
+      },
+      "unnecessary_refusals": {
+        "numerator": 1,
+        "denominator": 3,
+        "rate": 0.3333333333333333
+      },
+      "verification_rate": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "tool_calls": 9,
+      "latency_ns": {
+        "min": 54667,
+        "max": 84958,
+        "mean": 69486.0
+      }
+    },
+    "D": {
+      "tasks": 6,
+      "recommendations": 3,
+      "committed_assignments": 2,
+      "commit_attempts": 3,
+      "incorrect_affirmative_recommendations": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "invalid_commits": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "valid_task_completion": {
+        "numerator": 2,
+        "denominator": 3,
+        "rate": 0.6666666666666666
+      },
+      "unnecessary_refusals": {
+        "numerator": 1,
+        "denominator": 3,
+        "rate": 0.3333333333333333
+      },
+      "verification_rate": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "tool_calls": 9,
+      "latency_ns": {
+        "min": 58292,
+        "max": 107958,
+        "mean": 74430.5
+      }
+    }
+  }
+}

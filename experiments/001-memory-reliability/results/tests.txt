@@ -1,0 +1,13 @@
+test_atomic_guard_reads_current_state (test_experiment.ExperimentTests.test_atomic_guard_reads_current_state) ... ok
+test_ground_truth_and_metrics (test_experiment.ExperimentTests.test_ground_truth_and_metrics) ... ok
+test_guard_allows_eligible_and_is_idempotent (test_experiment.ExperimentTests.test_guard_allows_eligible_and_is_idempotent) ... ok
+test_guard_rejects_missing_and_ineligible (test_experiment.ExperimentTests.test_guard_rejects_missing_and_ineligible) ... ok
+test_lookup_failure_fails_closed (test_experiment.ExperimentTests.test_lookup_failure_fails_closed) ... ok
+test_metrics_derive_from_events (test_experiment.ExperimentTests.test_metrics_derive_from_events) ... ok
+test_predetermined_outcomes (test_experiment.ExperimentTests.test_predetermined_outcomes) ... ok
+test_required_precheck_cannot_be_bypassed (test_experiment.ExperimentTests.test_required_precheck_cannot_be_bypassed) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.010s
+
+OK

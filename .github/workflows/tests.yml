@@ -1,0 +1,19 @@
+name: Tests
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run Experiment 001 tests
+        run: python3 -m unittest discover -s experiments/001-memory-reliability -p 'test_*.py' -v
