@@ -23,6 +23,12 @@ python3 experiments/001-memory-reliability/experiment.py
 
 The runner saves 24 task traces and computed summaries in [results.json](experiments/001-memory-reliability/results/results.json). Logical outcomes repeat; timestamps and local timings vary. The [test workflow](.github/workflows/tests.yml) runs on pushes and pull requests.
 
+## Visual results
+
+Open [docs/index.html](docs/index.html) locally for a self-contained, responsive results page; no server or network requests are needed to render it. GitHub displays the HTML source rather than hosting it as a website.
+
+![Actual desktop capture of Experiment 001, showing invalid commits and legitimate completion side by side](docs/assets/experiment-001-desktop.png)
+
 ## Observed results
 
 These are our simulation results, not the cited researchers' results.
@@ -40,4 +46,4 @@ D blocked the injected invalid write. **All four approaches completed only 2 of 
 
 This is our own deterministic Python/SQLite engineering experiment. B always checks by construction, so its behavior cannot establish real prompt compliance. Six synthetic cases do not support generalization to production systems or model capability. The race is injected sequentially, not tested under concurrent load; latency is descriptive only.
 
-Inspired by Jianhua Jiang, Dongbo Yuan, and Weihua Li, *MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents*, arXiv:2609.14976v1, submitted September 14, 2026. [Paper and attribution](experiments/001-memory-reliability/attribution.md). We did not reproduce MemRiskBench, its benchmark, or its model scores. No author affiliation or endorsement is implied.
+Inspired by Jianhua Jiang, Dongbo Yuan, and Weihua Li, *MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents*, arXiv:2609.14976v1, submitted September 14, 2026. [Original paper](https://arxiv.org/abs/2609.14976) · [Attribution](experiments/001-memory-reliability/attribution.md). We did not reproduce MemRiskBench, its benchmark, or its model scores. No author affiliation or endorsement is implied.

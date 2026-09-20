@@ -8,14 +8,14 @@
     "sqlite": "3.49.1"
   },
   "command": "python3 experiments/001-memory-reliability/experiment.py",
-  "generated_at_utc": "2026-09-20T05:43:09.246105+00:00",
+  "generated_at_utc": "2026-09-20T06:08:48.563714+00:00",
   "runs": [
     {
       "scenario": "eligible_unchanged",
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 232666,
+      "latency_ns": 216667,
       "events": [
         {
           "kind": "ground_truth",
@@ -52,7 +52,7 @@
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 102000,
+      "latency_ns": 92375,
       "events": [
         {
           "kind": "ground_truth",
@@ -94,7 +94,7 @@
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 84958,
+      "latency_ns": 79125,
       "events": [
         {
           "kind": "ground_truth",
@@ -136,7 +136,7 @@
       "approach": "D",
       "recommended": true,
       "committed": true,
-      "latency_ns": 107958,
+      "latency_ns": 79750,
       "events": [
         {
           "kind": "ground_truth",
@@ -178,7 +178,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 79916,
+      "latency_ns": 70208,
       "events": [
         {
           "kind": "ground_truth",
@@ -215,7 +215,7 @@
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 66125,
+      "latency_ns": 61458,
       "events": [
         {
           "kind": "ground_truth",
@@ -254,7 +254,7 @@
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 62625,
+      "latency_ns": 90250,
       "events": [
         {
           "kind": "ground_truth",
@@ -293,7 +293,7 @@
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 60708,
+      "latency_ns": 58667,
       "events": [
         {
           "kind": "ground_truth",
@@ -332,7 +332,7 @@
       "approach": "A",
       "recommended": false,
       "committed": false,
-      "latency_ns": 59041,
+      "latency_ns": 65500,
       "events": [
         {
           "kind": "ground_truth",
@@ -366,7 +366,7 @@
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 69709,
+      "latency_ns": 80584,
       "events": [
         {
           "kind": "ground_truth",
@@ -408,7 +408,7 @@
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 70458,
+      "latency_ns": 70791,
       "events": [
         {
           "kind": "ground_truth",
@@ -450,7 +450,7 @@
       "approach": "D",
       "recommended": true,
       "committed": true,
-      "latency_ns": 72333,
+      "latency_ns": 73000,
       "events": [
         {
           "kind": "ground_truth",
@@ -492,7 +492,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 79958,
+      "latency_ns": 63125,
       "events": [
         {
           "kind": "ground_truth",
@@ -529,7 +529,7 @@
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 76333,
+      "latency_ns": 55375,
       "events": [
         {
           "kind": "ground_truth",
@@ -568,7 +568,7 @@
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 54667,
+      "latency_ns": 54584,
       "events": [
         {
           "kind": "ground_truth",
@@ -607,7 +607,7 @@
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 68500,
+      "latency_ns": 54500,
       "events": [
         {
           "kind": "ground_truth",
@@ -646,7 +646,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 68916,
+      "latency_ns": 66292,
       "events": [
         {
           "kind": "ground_truth",
@@ -683,7 +683,7 @@
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 62459,
+      "latency_ns": 68583,
       "events": [
         {
           "kind": "ground_truth",
@@ -722,7 +722,7 @@
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 59750,
+      "latency_ns": 61834,
       "events": [
         {
           "kind": "ground_truth",
@@ -761,7 +761,7 @@
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 58292,
+      "latency_ns": 62000,
       "events": [
         {
           "kind": "ground_truth",
@@ -800,7 +800,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 73292,
+      "latency_ns": 77417,
       "events": [
         {
           "kind": "ground_truth",
@@ -842,7 +842,7 @@
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 73083,
+      "latency_ns": 77459,
       "events": [
         {
           "kind": "ground_truth",
@@ -889,7 +889,7 @@
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 84458,
+      "latency_ns": 75667,
       "events": [
         {
           "kind": "ground_truth",
@@ -936,7 +936,7 @@
       "approach": "D",
       "recommended": true,
       "committed": false,
-      "latency_ns": 78792,
+      "latency_ns": 78583,
       "events": [
         {
           "kind": "ground_truth",
@@ -1012,9 +1012,9 @@
       },
       "tool_calls": 5,
       "latency_ns": {
-        "min": 59041,
-        "max": 232666,
-        "mean": 98964.83333333333
+        "min": 63125,
+        "max": 216667,
+        "mean": 93201.5
       }
     },
     "B": {
@@ -1049,9 +1049,9 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 62459,
-        "max": 102000,
-        "mean": 74951.5
+        "min": 55375,
+        "max": 92375,
+        "mean": 72639.0
       }
     },
     "C": {
@@ -1086,9 +1086,9 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 54667,
-        "max": 84958,
-        "mean": 69486.0
+        "min": 54584,
+        "max": 90250,
+        "mean": 72041.83333333333
       }
     },
     "D": {
@@ -1123,9 +1123,9 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 58292,
-        "max": 107958,
-        "mean": 74430.5
+        "min": 54500,
+        "max": 79750,
+        "mean": 67750.0
       }
     }
   }
