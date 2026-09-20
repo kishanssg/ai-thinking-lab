@@ -31,7 +31,7 @@ The runner saves 24 task traces and computed summaries in [results.json](experim
 
 ## Visual results
 
-Open [docs/index.html](docs/index.html) locally for a self-contained, responsive results page; no server or network requests are needed to render it. GitHub displays the HTML source rather than hosting it as a website.
+View the [visual results page](https://kishanssg.github.io/ai-thinking-lab/) on GitHub Pages, or open [docs/index.html](docs/index.html) locally for a self-contained responsive page.
 
 ![Actual desktop capture of Experiment 001, showing invalid commits and legitimate completion side by side](docs/assets/experiment-001-desktop.png)
 

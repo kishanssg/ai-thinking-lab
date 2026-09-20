@@ -17,3 +17,22 @@ jobs:
           python-version: '3.13'
       - name: Run Experiment 001 tests
         run: python3 -m unittest discover -s experiments/001-memory-reliability -p 'test_*.py' -v
+
+      - name: Run experiment and validate logical results
+        run: |
+          python3 experiments/001-memory-reliability/experiment.py --output "$RUNNER_TEMP/experiment-001-results.json"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(Path(os.environ["RUNNER_TEMP"], "experiment-001-results.json").read_text())
+          assert len(report["runs"]) == 24
+          expected = {"A": (3, 2, 3), "B": (1, 2, 3), "C": (1, 2, 3), "D": (0, 2, 3)}
+          for approach, (invalid, completed, eligible) in expected.items():
+              summary = report["summary"][approach]
+              assert summary["invalid_commits"]["numerator"] == invalid
+              assert summary["invalid_commits"]["denominator"] == 6
+              assert summary["valid_task_completion"]["numerator"] == completed
+              assert summary["valid_task_completion"]["denominator"] == eligible
+          PY
