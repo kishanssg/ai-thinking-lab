@@ -2,6 +2,8 @@
 
 A stale eligibility flag can cause a fictional worker to be assigned incorrectly. A fresh check helps, but eligibility may change before execution. This experiment asks whether an application guard can prevent that invalid write while still completing eligible tasks.
 
+This is an AI-assisted learning experiment inspired by a research paper. ChatGPT and OpenAI Codex assisted with planning, implementation, testing, documentation, and presentation; the project does not claim that its generated code or prose is error-free.
+
 ## Method
 
 Six predetermined fixtures cover unchanged eligibility, stale true, stale false, a missing worker, a failed lookup, and an injected eligibility revocation. All records and rules are synthetic. Each of four approaches runs each fixture against a fresh SQLite database:

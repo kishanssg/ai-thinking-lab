@@ -4,11 +4,17 @@
 
 Small, reproducible engineering experiments that turn a research question into code, explicit expectations, and inspectable evidence.
 
+AI Thinking Lab is my AI-assisted learning portfolio. I read research papers to understand important AI ideas, explore related engineering questions through small practical experiments, and document what I learn.
+
+ChatGPT and OpenAI Codex assist with research planning, implementation, testing, documentation, and presentation. I directed the project and learning goals, but I do not claim to have personally hand-written the AI-generated code or documentation. Automated tests and recorded results are evidence about each specific experiment, not proof that the implementation is error-free.
+
 ## Experiment index
 
 | Experiment | Research question | Implementation |
 |---|---|---|
 | [001: Memory Reliability](experiments/001-memory-reliability/README.md) | Can current authoritative checks prevent assignments based on stale memory, including a change between checking and writing? | Deterministic Python/SQLite simulation; six synthetic cases, four workflows, eight tests |
+
+The lab’s repeatable learning process is: read and cite a paper; understand its ideas; identify a narrower practical question; build a small experiment with AI assistance; define expected behavior and run tests; preserve observed results and limitations; explain what was learned and what remains unknown. Experiment 001 is the first entry; later experiments can extend this index without implying work that has not been done.
 
 Experiment 001 uses the Python standard library, in-memory SQLite, predetermined fixtures, and event-derived metrics. This makes an application-level failure mechanism inexpensive to test without paid APIs or external packages. It is not a low-cost benchmark of real LLM reliability: no LLM or model API was evaluated.
 
@@ -46,4 +52,4 @@ D blocked the injected invalid write. **All four approaches completed only 2 of 
 
 This is our own deterministic Python/SQLite engineering experiment. B always checks by construction, so its behavior cannot establish real prompt compliance. Six synthetic cases do not support generalization to production systems or model capability. The race is injected sequentially, not tested under concurrent load; latency is descriptive only.
 
-Inspired by Jianhua Jiang, Dongbo Yuan, and Weihua Li, *MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents*, arXiv:2609.14976v1, submitted September 14, 2026. [Original paper](https://arxiv.org/abs/2609.14976) · [Attribution](experiments/001-memory-reliability/attribution.md). We did not reproduce MemRiskBench, its benchmark, or its model scores. No author affiliation or endorsement is implied.
+Inspired by Jianhua Jiang, Dongbo Yuan, and Weihua Li, *MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents*, arXiv:2609.14976v1, submitted September 14, 2026. [Original paper](https://arxiv.org/abs/2609.14976) · [Attribution](experiments/001-memory-reliability/attribution.md). We did not reproduce MemRiskBench, its benchmark, or its model scores. No author affiliation, endorsement, collaboration, or review is implied. The researchers’ findings and our measured findings are separate.
