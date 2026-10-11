@@ -6,7 +6,7 @@ Small, reproducible engineering experiments that turn a research question into c
 
 AI Thinking Lab is my AI-assisted learning portfolio. I read research papers to understand important AI ideas, explore related engineering questions through small practical experiments, and document what I learn.
 
-ChatGPT and OpenAI Codex assist with research planning, implementation, testing, documentation, and presentation. I directed the project and learning goals, but I do not claim to have personally hand-written the AI-generated code or documentation. Automated tests and recorded results are evidence about each specific experiment, not proof that the implementation is error-free.
+ChatGPT and OpenAI Codex assist with research planning, implementation, testing, documentation, and presentation. Claude Code assisted with the website redesign. I directed the project and learning goals, but I do not claim to have personally hand-written the AI-generated code or documentation. Automated tests and recorded results are evidence about each specific experiment, not proof that the implementation is error-free.
 
 ## Experiment index
 
@@ -29,11 +29,18 @@ python3 experiments/001-memory-reliability/experiment.py
 
 The runner saves 24 task traces and computed summaries in [results.json](experiments/001-memory-reliability/results/results.json). Logical outcomes repeat; timestamps and local timings vary. The [test workflow](.github/workflows/tests.yml) runs on pushes and pull requests.
 
-## Visual results
+## Website
 
-View the [AI Thinking Lab homepage](https://kishanssg.github.io/ai-thinking-lab/) and the dedicated [Experiment 001 visual results page](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/). Open [docs/index.html](docs/index.html) locally for the homepage.
+The [homepage](https://kishanssg.github.io/ai-thinking-lab/) and the [Experiment 001 page](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/) are static HTML in [`docs/`](docs/), served by GitHub Pages with no build step, framework, or JavaScript. Shared styles are in [`docs/assets/site.css`](docs/assets/site.css).
 
-![Actual desktop capture of Experiment 001, showing invalid commits and legitimate completion side by side](docs/assets/experiment-001-desktop.png)
+[`docs/check_site.py`](docs/check_site.py) checks every result value, scenario-matrix cell, and embedded trace on the pages against `results.json`, and verifies internal links and repository links. CI runs it on every push. To preview locally:
+
+```sh
+python3 docs/check_site.py
+python3 -m http.server 8000 --directory docs   # then open http://localhost:8000/
+```
+
+![Desktop capture of the Experiment 001 results: outcomes by approach and the per-scenario matrix](docs/assets/experiment-001-desktop.png)
 
 ## Observed results
 

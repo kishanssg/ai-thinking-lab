@@ -36,3 +36,6 @@ jobs:
               assert summary["valid_task_completion"]["numerator"] == completed
               assert summary["valid_task_completion"]["denominator"] == eligible
           PY
+
+      - name: Check published pages against saved results
+        run: python3 docs/check_site.py
