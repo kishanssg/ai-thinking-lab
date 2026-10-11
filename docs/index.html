@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Thinking Lab · Research. Experiments. Evidence.</title>
-<meta name="description" content="Small, reproducible engineering experiments inspired by AI research, each with code, tests, recorded results, and stated limitations.">
+<meta name="description" content="I read AI research, test one idea from it with a small experiment, and explain what I found in plain words, including what didn't work.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="AI Thinking Lab">
 <meta property="og:title" content="AI Thinking Lab · Research. Experiments. Evidence.">
-<meta property="og:description" content="Small, reproducible engineering experiments inspired by AI research, each with code, tests, recorded results, and stated limitations.">
+<meta property="og:description" content="I read AI research, test one idea from it with a small experiment, and explain what I found in plain words, including what didn't work.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-home.png">
 <meta property="og:image:width" content="1200">
@@ -28,7 +28,7 @@
     <a class="brand" href="./" aria-current="page">AI Thinking Lab</a>
     <nav class="site-nav" aria-label="Site">
       <a href="#experiments">Experiments</a>
-      <a href="#method">Method</a>
+      <a href="#method">How I work</a>
       <a href="#about">About</a>
       <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a>
     </nav>
@@ -40,44 +40,47 @@
 <div class="intro">
   <h1>AI Thinking Lab</h1>
   <p class="tagline">Research. Experiments. Evidence.</p>
-  <p class="lede">I read AI and ML research, pick out one engineering question I can actually test, and build a small experiment anyone can rerun. Each entry has the code, the tests, the recorded results, and a plain statement of what the evidence does and doesn&rsquo;t show.</p>
-  <p class="lede-2">So far that means agent failures that turn out to be ordinary backend problems: stale state, and where a rule actually gets enforced.</p>
+  <p class="lede">I read research about AI. Then I build a small test to check one idea from it, and explain what I found in plain words, including what didn&rsquo;t work.</p>
 </div>
 
-<section class="featured-wrap" aria-labelledby="featured-title" style="margin-top:48px">
-  <p class="eyebrow">Experiment 001 &middot; September 2026</p>
+<section class="featured-wrap" aria-labelledby="featured-title" style="margin-top:40px">
+  <p class="eyebrow">Latest: Experiment 001 &middot; September 2026</p>
   <div class="featured">
     <div>
-      <h2 id="featured-title"><a href="experiments/001-memory-reliability/">Stale memory and check-then-write</a></h2>
-      <p class="question">If a system checks a worker&rsquo;s eligibility right before writing an assignment, can that check still be wrong by the time the write happens? And what actually prevents the bad write?</p>
-      <p class="muted">A small Python/SQLite simulation: 6 scenarios, 4 approaches, from trusting memory to putting the condition in the <code>INSERT</code>. No model involved.</p>
+      <h2 id="featured-title"><a href="experiments/001-memory-reliability/">What stops a system from acting on old information?</a></h2>
+      <p class="question">An app remembered that a worker was allowed to take a shift. That changed, and the app booked them anyway. I tried four ways to stop it.</p>
+      <ul class="takeaways">
+        <li><strong>Checking first wasn&rsquo;t enough.</strong> If the answer changed a moment after the check, the bad booking still went through.</li>
+        <li><strong>Checking again while saving stopped it</strong>, every time in this test.</li>
+        <li><strong>The catch:</strong> no method booked more of the right workers.</li>
+      </ul>
       <div class="actions">
-        <a href="experiments/001-memory-reliability/">Read the experiment →</a>
-        <a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Source and tests</a>
+        <a href="experiments/001-memory-reliability/">See the full experiment &rarr;</a>
+        <a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code and tests</a>
       </div>
     </div>
     <div class="result-strip">
-      <h3>Result</h3>
+      <h3>Results</h3>
       <table id="home-results">
         <thead>
-          <tr><th scope="col">Approach</th><th scope="col">Invalid writes<span class="dir">of 6 tasks</span></th><th scope="col">Completed<span class="dir">of 3 eligible</span></th></tr>
+          <tr><th scope="col">Method</th><th scope="col">Bad bookings<span class="dir">out of 6</span></th><th scope="col">Right workers booked<span class="dir">out of 3</span></th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row"><span class="approach-tag">A</span>Memory only</th>
+          <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th>
             <td><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3</span></span></td>
             <td><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">B</span>Voluntary check</th>
+          <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th>
             <td><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1</span></span></td>
             <td><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">C</span>Required check</th>
+          <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th>
             <td><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1</span></span></td>
             <td><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">D</span>Guarded insert</th>
+          <tr><th scope="row"><span class="approach-tag">D</span>Check while saving</th>
             <td><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0</span></span></td>
             <td><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
         </tbody>
       </table>
-      <p>Checking first still let one invalid write through. Putting the condition in the <code>INSERT</code> stopped it. No approach finished more than 2 of the 3 eligible tasks.</p>
+      <p>A small practice test on my own computer. No AI model was used.</p>
     </div>
   </div>
 </section>
@@ -87,34 +90,34 @@
   <div class="table-scroll">
     <table class="index-table">
       <thead>
-        <tr><th scope="col">No.</th><th scope="col">Experiment</th><th scope="col">Question</th><th scope="col">Status</th><th scope="col">Links</th></tr>
+        <tr><th scope="col">No.</th><th scope="col">Experiment</th><th scope="col">The question</th><th scope="col">Status</th><th scope="col">Links</th></tr>
       </thead>
       <tbody>
         <tr>
           <td class="num">001</td>
-          <td><a href="experiments/001-memory-reliability/"><strong>Stale memory and check-then-write</strong></a><br><span class="small muted">Python · SQLite · 8 tests</span></td>
-          <td class="q">Does checking eligibility before a write prevent invalid assignments when memory is stale?</td>
-          <td><span class="status">Complete<br><span class="muted">2026-09-20</span></span></td>
+          <td><a href="experiments/001-memory-reliability/"><strong>Acting on old information</strong></a><br><span class="small muted">Python and SQLite, 8 tests</span></td>
+          <td class="q">If a system checks before it acts, can the answer still be out of date?</td>
+          <td><span class="status">Done<br><span class="muted">Sep 2026</span></span></td>
           <td class="small"><a href="experiments/001-memory-reliability/">Results</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code</a></td>
         </tr>
       </tbody>
     </table>
   </div>
-  <p class="small muted">New experiments are added here when they have code, results, and a write-up.</p>
+  <p class="small muted">New experiments show up here once they have code, results and a write-up.</p>
 </section>
 
 <section id="method" aria-labelledby="method-title">
-  <h2 id="method-title">How I run these</h2>
+  <h2 id="method-title">How I work</h2>
   <div class="prose measure">
-    <p>I pick one question from a paper, build the smallest thing that can answer it, write the expected outcomes into the test fixtures, run it, and save the raw traces. The write-up says what the result does and doesn&rsquo;t show. Each experiment folder has the code, tests, results and notes.</p>
+    <p>I pick one question from a research paper. I build the smallest test that can answer it, and write down what I expect before I run it. Then I run it, save the results, and explain what they do and don&rsquo;t show. Everything is on GitHub so anyone can check it.</p>
   </div>
 </section>
 
 <section id="about" aria-labelledby="about-title">
   <h2 id="about-title">About</h2>
   <div class="prose measure">
-    <p>This is where I work through AI papers by building small things. I&rsquo;m most interested in where agent reliability comes down to backend engineering.</p>
-    <p>The code and docs were written with AI help: ChatGPT and OpenAI Codex for the experiment, Claude Code for this site. I pick the questions, decide what to test, and check the results.</p>
+    <p>This is where I learn about AI by building small things. I&rsquo;m most interested in the places where AI safety comes down to ordinary software: keeping data up to date, and making sure rules are checked at the right moment.</p>
+    <p>I used AI tools to help: ChatGPT and OpenAI Codex for the experiment, Claude Code for this site. I choose the questions, decide what to test, and check the results.</p>
   </div>
 </section>
 
@@ -122,7 +125,7 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <p>AI Thinking Lab · by <a href="https://github.com/kishanssg">kishanssg</a> · <a href="https://github.com/kishanssg/ai-thinking-lab">Source on GitHub</a></p>
+    <p>AI Thinking Lab &middot; by <a href="https://github.com/kishanssg">kishanssg</a> &middot; <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a></p>
   </div>
 </footer>
 </body>
