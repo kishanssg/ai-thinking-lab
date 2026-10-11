@@ -13,6 +13,7 @@ ChatGPT and OpenAI Codex assist with research planning, implementation, testing,
 | Experiment | Research question | Implementation |
 |---|---|---|
 | [001: Memory Reliability](experiments/001-memory-reliability/README.md) · [visual results](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/) | Can current authoritative checks prevent assignments based on stale memory, including a change between checking and writing? | Deterministic Python/SQLite simulation; six synthetic cases, four workflows, eight tests |
+| [001b: Concurrent Guard](experiments/001b-concurrent-guard/README.md) · [summary](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/#followup) | Under real concurrency, is a late re-read enough, or must the check and the write share one transaction? | Threaded Python/SQLite harness; two connections, 3,000 iterations per approach, thirteen tests |
 
 The lab’s repeatable learning process is: read and cite a paper; understand its ideas; identify a narrower practical question; build a small experiment with AI assistance; define expected behavior and run tests; preserve observed results and limitations; explain what was learned and what remains unknown. Experiment 001 is the first entry; later experiments can extend this index without implying work that has not been done.
 

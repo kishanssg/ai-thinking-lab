@@ -35,7 +35,6 @@
     </div>
     <nav class="mast-nav" aria-label="Site">
       <a href="../../#experiments">Experiments</a>
-      <a href="../../#method">How I work</a>
       <a href="../../#about">About</a>
       <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a>
     </nav>
@@ -57,7 +56,8 @@
   <dl class="glimpse-list">
     <div><dt>The problem</dt><dd>An AI agent that handles refunds remembered that an order could be refunded. Someone else refunded it first. The agent refunded it again.</dd></div>
     <div><dt>What I tried</dt><dd>Four ways to stop that, each tested in the same 6 situations.</dd></div>
-    <div><dt>What worked</dt><dd>Checking again <em>at the moment of refunding</em> stopped every wrong refund: <span class="num">0 of 6</span>. Checking a moment earlier still let <span class="num">1 of 6</span> through.</dd></div>
+    <div><dt>What worked</dt><dd>Doing the check <em>inside</em> the refund step stopped every wrong refund: <span class="num">0 of 6</span>. Checking a moment earlier still let <span class="num">1 of 6</span> through.</dd></div>
+    <div><dt>Follow-up</dt><dd>A tougher stress test showed a quick re-check just before refunding still fails about 1 time in 6. The check and the refund must be <em>one locked step</em>.</dd></div>
     <div><dt>The catch</dt><dd>No method gave more of the fair refunds. Each one refused a fair refund once, for different reasons.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
@@ -271,7 +271,7 @@ INSERT INTO assignments (shift, worker)
 SELECT 'toy-shift', id FROM workers
 WHERE id = 'toy-worker' AND eligible = 1;
 COMMIT;</code></pre>
-      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
+      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency; the <a href="#followup">follow-up</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
     </div>
   </details>
   <details class="eng">
@@ -300,10 +300,33 @@ COMMIT;</code></pre>
   </details>
 </section>
 
+<section id="followup" aria-labelledby="followup-title">
+  <h2 id="followup-title">Follow-up: a real stress test</h2>
+  <div class="prose measure">
+    <p>The test above couldn&rsquo;t tell whether the special refund step mattered, or whether any late re-check would do. So I ran a tougher version (Experiment 001b). This time the teammate&rsquo;s change really happened at the same moment as the agent&rsquo;s refund, 3,000 times per method, three runs.</p>
+  </div>
+  <div class="table-scroll">
+    <table class="compare simple followup-table">
+      <caption>Wrong refunds when things really happen at the same time</caption>
+      <thead><tr><th scope="col">Method</th><th scope="col">Wrong refunds</th><th scope="col">What it does</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Check first, required</th><td><span class="metric" data-exp="001b" data-approach="C" data-value="2460/9000"><span class="value">2,460 of 9,000</span> (27%)</span></td><td class="note">The same as method C above.</td></tr>
+        <tr><th scope="row">Re-check just before refunding</th><td><span class="metric" data-exp="001b" data-approach="E" data-value="1472/9000"><span class="value">1,472 of 9,000</span> (16%)</span></td><td class="note">Looks again right before refunding, as a separate step.</td></tr>
+        <tr><th scope="row">Check and refund as one locked step</th><td><span class="metric" data-exp="001b" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and refund inside one database transaction.</td></tr>
+        <tr><th scope="row">Check while refunding (method D)</th><td><span class="metric" data-exp="001b" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded refund from above, inside a transaction.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose measure">
+    <p><strong>A quick re-check isn&rsquo;t enough.</strong> What works is making the check and the refund one locked step, so nothing can change in between. In SQLite that means a write transaction. The special guarded refund wasn&rsquo;t the important part.</p>
+  </div>
+  <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001b-concurrent-guard/README.md">Code, method and full results</a>.</p>
+</section>
+
 <section id="learned" aria-labelledby="learned-title">
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
-    <p>A check can be right and still be too early. The safest place to check is the moment you act.</p>
+    <p>A check can be right and still be too early. Even a re-check right before acting wasn&rsquo;t enough once things really happened at the same time. The check and the action need to be one locked step.</p>
     <p>Safety and usefulness are different things. Method D stopped the wrong refund, but it didn&rsquo;t give any more of the fair refunds. If I had only measured one number, I would have missed that.</p>
     <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so a customer who deserved a refund didn&rsquo;t get one. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
   </div>
@@ -313,7 +336,6 @@ COMMIT;</code></pre>
   <h2 id="open-title">What I don&rsquo;t know yet</h2>
   <div class="prose measure">
     <ul>
-      <li>Is it the special refund step that helps, or just checking late? In this test, checking again just before refunding would have worked too. To find out, I&rsquo;d need two things happening at the same time, for real.</li>
       <li>Would this hold on other databases? On Postgres, the same trick can still fail unless you add a lock. I haven&rsquo;t tested that.</li>
       <li>What if the order changes after the refund is sent? Method D doesn&rsquo;t handle that.</li>
       <li>What should the agent do when it hears &ldquo;already refunded&rdquo;? Tell the customer, check again later, or ask a person?</li>
@@ -328,7 +350,7 @@ COMMIT;</code></pre>
     <ul>
       <li>No AI model was used. A simple fixed rule plays the part of the agent.</li>
       <li>It&rsquo;s small: 6 made-up situations and one yes/no rule.</li>
-      <li>Nothing happens at the same time. The change in situation 6 is slotted in on purpose.</li>
+      <li>In this test nothing happens at the same time; the change in situation 6 is slotted in on purpose. The follow-up covers real timing, on one laptop and SQLite only.</li>
       <li>The paper doesn&rsquo;t test this timing gap. This is my own extension, not a copy of the MemRiskBench study.</li>
     </ul>
   </div>

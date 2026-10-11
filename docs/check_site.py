@@ -6,6 +6,8 @@ Verifies, using only the standard library:
 - the Experiment 001 scenario matrix has all 24 runs, each matching results.json,
   and each cell's outcome style matches the recorded outcome;
 - every embedded trace (data-trace) equals the recorded event list;
+- every Experiment 001b total (data-exp="001b") equals the sum of the
+  free-running runs in 001b's results.json, including its visible number;
 - relative links, in-page anchors, local assets, and links to files in this
   repository resolve.
 
@@ -20,6 +22,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / 'docs'
 RESULTS = ROOT / 'experiments' / '001-memory-reliability' / 'results' / 'results.json'
+RESULTS_001B = ROOT / 'experiments' / '001b-concurrent-guard' / 'results' / 'results.json'
 SITE_URL = 'https://kishanssg.github.io/ai-thinking-lab/'
 REPO_URL = 'https://github.com/kishanssg/ai-thinking-lab/'
 EXPERIMENT_PAGE = DOCS / 'experiments' / '001-memory-reliability' / 'index.html'
@@ -51,7 +54,7 @@ class Page(HTMLParser):
                 self.links.append(a[key])
         if tag == 'meta' and a.get('property') == 'og:image':
             self.links.append(a['content'])
-        if 'data-metric' in a:
+        if 'data-metric' in a or 'data-exp' in a:
             self._metric = [a, self._depth, '', 0, False, None]
         if 'data-scenario' in a:
             self.cells.append(a)
@@ -102,12 +105,25 @@ def main():
     summary = report['summary']
     runs = {(r['scenario'], r['approach']): r for r in report['runs']}
     pages = {p: parse(p) for p in sorted(DOCS.rglob('*.html'))}
+    free = [r for r in json.loads(RESULTS_001B.read_text(encoding='utf-8'))['runs'] if r['mode'] == 'free']
+    totals_001b = {a: (sum(r['approaches'][a]['invalid_commits']['numerator'] for r in free),
+                       sum(r['approaches'][a]['invalid_commits']['denominator'] for r in free))
+                   for a in free[0]['approaches']}
     errors, checked = [], {'metrics': 0, 'cells': 0, 'traces': 0, 'links': 0}
 
     for path, page in pages.items():
         name = path.relative_to(ROOT).as_posix()
 
         for m in page.metrics:
+            if m.get('data-exp') == '001b':
+                n, d = totals_001b[m['data-approach']]
+                label = f"{name}: 001b {m['data-approach']}"
+                if m['data-value'] != f'{n}/{d}':
+                    errors.append(f"{label} is marked {m['data-value']}, 001b results have {n}/{d}")
+                if m['shown'] != f'{n:,} of {d:,}':
+                    errors.append(f"{label} displays {m['shown']!r}, expected '{n:,} of {d:,}'")
+                checked['metrics'] += 1
+                continue
             s = summary[m['data-approach']][m['data-metric']]
             expected = f"{s['numerator']}/{s['denominator']}"
             label = f"{name}: {m['data-approach']} {m['data-metric']}"
