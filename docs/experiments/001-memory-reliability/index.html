@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Experiment 001: Memory Reliability · AI Thinking Lab</title>
-<meta name="description" content="A deterministic Python/SQLite experiment on stale memory and time-of-check/time-of-use races: a fresh eligibility check still allowed an invalid write; an atomic database guard prevented it, but did not improve legitimate task completion.">
+<title>Experiment 001: Stale memory and check-then-write · AI Thinking Lab</title>
+<meta name="description" content="A small Python/SQLite simulation of an assignment system acting on stale memory. Checking first still let an invalid write through when eligibility changed before the write; a conditional insert stopped it. No model is involved.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../../assets/site.css">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="AI Thinking Lab">
-<meta property="og:title" content="Experiment 001: When a fresh check is no longer fresh">
-<meta property="og:description" content="Stale memory, prechecks, and an atomic eligibility guard, tested in a small deterministic Python/SQLite simulation. Results, failure analysis, and limitations.">
+<meta property="og:title" content="Experiment 001: Stale memory and check-then-write">
+<meta property="og:description" content="Four ways to stop an assignment system acting on stale eligibility, tested in a small Python/SQLite simulation: results, the failing case step by step, and what it does not show.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-experiment-001.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Invalid commits out of 6 tasks: memory only 3, voluntary precheck 1, required precheck 1, atomic guard 0. Every approach completed 2 of 3 eligible tasks.">
+<meta property="og:image:alt" content="Invalid commits out of 6 tasks: memory only 3, voluntary precheck 1, required precheck 1, guarded insert 0. Every approach completed 2 of 3 eligible tasks.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -38,67 +38,56 @@
 <main id="main" class="wrap">
 
 <div class="intro">
-  <p class="kicker"><b>Experiment 001</b> · Memory reliability</p>
-  <h1>When a fresh check is no longer fresh</h1>
-  <p class="lede">A system that assigns work based on remembered eligibility will sometimes be wrong. Checking the database first helps, but that answer can go stale before the write happens. I built a small, deterministic Python/SQLite simulation to see which safeguards actually stop an invalid write, and what each one costs.</p>
+  <p class="eyebrow">Experiment 001 &middot; September 2026</p>
+  <h1>Stale memory and check-then-write</h1>
+  <p class="lede">An agent, or any automated workflow, that assigns work from memory will sometimes act on information that is out of date. I wanted to see what actually stops the bad write: checking first, requiring a check, or putting the condition into the write itself.</p>
+  <p class="lede-2">This is a small Python/SQLite simulation. No model is involved. The decisions come from a fixed policy standing in for the agent, and what I'm testing is the tool and database side.</p>
   <dl class="meta-list">
     <div><dt>Status </dt><dd>Complete</dd></div>
-    <div><dt>Run </dt><dd>2026-09-20</dd></div>
-    <div><dt>Stack </dt><dd>Python 3.13 · SQLite · stdlib only</dd></div>
-    <div><dt>Design </dt><dd>6 scenarios × 4 approaches</dd></div>
+    <div><dt>Stack </dt><dd>Python 3.13, SQLite, standard library</dd></div>
+    <div><dt>Design </dt><dd>6 scenarios &times; 4 approaches</dd></div>
     <div><dt>Tests </dt><dd>8 passing</dd></div>
     <div><dt>Built </dt><dd><a href="#attribution">with AI assistance</a></dd></div>
   </dl>
 </div>
 
 <section class="summary" aria-labelledby="summary-title">
-  <h2 id="summary-title">Findings</h2>
+  <h2 id="summary-title">Results in short</h2>
   <ul class="findings">
-    <li><strong>A fresh check still let an invalid write through.</strong>Approaches that checked current eligibility on every task committed <span class="num">1 of 6</span> invalid assignments, when eligibility was revoked between the check and the write.</li>
-    <li><strong>Enforcing the rule inside the write stopped it.</strong>A conditional insert inside a SQLite write transaction produced <span class="num">0 of 6</span> invalid assignments in the tested scenarios.</li>
-    <li><strong>Safety improved. Completion did not.</strong>Every approach completed <span class="num">2 of 3</span> eligible tasks. The guarded approach refused an eligible worker when the lookup failed.</li>
+    <li>Approaches B and C checked eligibility on every task and still committed <span class="num">1 of 6</span> invalid assignments. It came from scenario 6, where eligibility is revoked after the check and before the write.</li>
+    <li>Approach D puts the eligibility condition in the <code>INSERT</code> and committed <span class="num">0 of 6</span>. A plain re-read just before the write would have scored the same in this setup; <a href="#failure">scenario 6</a> explains why.</li>
+    <li>Every approach completed <span class="num">2 of 3</span> eligible tasks. That depends heavily on which scenarios I picked: each approach lost exactly one, for a different reason.</li>
   </ul>
-  <p class="scope">Deterministic simulation with synthetic data. No LLM or model API was involved. <a href="#limitations">What this does not show</a></p>
+  <p class="scope">The metrics are counted from recorded event traces rather than expected labels, and CI checks that the numbers on this page match the saved results.</p>
 </section>
 
 <section id="question" aria-labelledby="question-title">
-  <p class="kicker">A · The question</p>
-  <h2 id="question-title">Is checking first enough?</h2>
+  <h2 id="question-title">The question</h2>
   <div class="prose measure">
-    <p>Agents and automated workflows increasingly act on things they remember: a permission, a status, a preference. Memory goes stale, and the obvious fix is to check the source of truth before acting. My question was narrower and more mechanical:</p>
-  </div>
-  <blockquote class="callout prose">
-    <p>If a system checks current eligibility before writing an assignment, does that prevent invalid assignments, including when eligibility changes between the check and the write?</p>
-  </blockquote>
-  <div class="prose measure">
-    <p>The idea came from reading <a href="https://arxiv.org/abs/2609.14976"><cite>MemRiskBench</cite></a> (Jiang, Yuan &amp; Li, 2026), which evaluates LLM agents on memory risks such as acting on superseded information. I did not reproduce that benchmark. I took one failure mode it describes and asked what an application can do about it at the database layer.</p>
+    <p>I was reading <a href="https://arxiv.org/abs/2609.14976"><cite>MemRiskBench</cite></a> (Jiang, Yuan &amp; Li, 2026), which tests LLM agents on memory problems, including acting on information that has since been updated. I did not reproduce that benchmark. I took one failure mode it describes and asked what the application can do about it at the database layer.</p>
+    <p>If a system checks eligibility right before it writes an assignment, is that enough? And what happens if eligibility changes between the check and the write?</p>
+    <p>In an agent, the &ldquo;policy&rdquo; would be the model deciding whether to call a tool, and the guard would live inside the tool. I only built the tool side.</p>
   </div>
 </section>
 
 <section id="why" aria-labelledby="why-title">
-  <p class="kicker">B · Why it matters</p>
-  <h2 id="why-title">A worker, a shift, and outdated eligibility</h2>
+  <h2 id="why-title">The example</h2>
   <div class="prose measure">
-    <p>Picture a scheduling system that fills shifts. Last week it recorded that a worker was eligible for a shift. Since then, their eligibility has been revoked.</p>
-    <ul>
-      <li><strong>Assign from memory</strong>, and the worker is booked for a shift they can no longer work.</li>
-      <li><strong>Check first</strong>, and the system sees the change and refuses. Good.</li>
-      <li>But if eligibility is revoked <em>after</em> the check and <em>before</em> the assignment is saved, the check said yes and the write goes through anyway.</li>
-    </ul>
-    <p>That last case is a time-of-check / time-of-use (TOCTOU) race. It is easy to miss in testing because the check was correct when it ran. The experiment models the situation with one fictional worker, one shift, and a single <code>eligible</code> flag.</p>
+    <p>A scheduling system remembers that a worker is eligible for a shift, but the worker&rsquo;s eligibility has since been revoked. If it assigns from memory, the worker ends up on a shift they can&rsquo;t work. If it checks first, it sees the change and refuses.</p>
+    <p>The harder case is a revocation that lands after the check but before the assignment is saved. The check was correct when it ran, so this is easy to miss in tests. It&rsquo;s the classic time-of-check / time-of-use problem.</p>
+    <p>The simulation uses one fictional worker, one shift and a single <code>eligible</code> flag.</p>
   </div>
 </section>
 
 <section id="experiment" aria-labelledby="experiment-title">
-  <p class="kicker">C · The experiment</p>
-  <h2 id="experiment-title">Four approaches, one rule, six scenarios</h2>
+  <h2 id="experiment-title">Setup</h2>
   <div class="prose measure">
-    <p>Every task asks the same thing: assign <code>toy-worker</code> to <code>toy-shift</code>. The rule is that the worker must exist and have <code>eligible = 1</code> when the assignment is written. Memory holds a Boolean from an earlier observation; the SQLite <code>workers</code> table is the source of truth. Each of the 24 runs starts from a fresh in-memory database.</p>
+    <p>Every task does the same thing: assign <code>toy-worker</code> to <code>toy-shift</code>. The worker has to exist and have <code>eligible = 1</code> when the assignment is written. Memory is a Boolean from an earlier observation, and the SQLite <code>workers</code> table is the source of truth. Each of the 24 runs gets a fresh in-memory database.</p>
   </div>
 
   <div class="figure table-scroll">
     <table class="compare">
-      <caption>How the approaches differ <span class="muted">· each adds one safeguard to the previous</span></caption>
+      <caption>The four approaches <span class="muted">(each adds one safeguard)</span></caption>
       <thead>
         <tr>
           <th scope="col">Approach</th>
@@ -118,16 +107,16 @@
         <tr>
           <th scope="row"><span class="approach-tag">B</span><span class="approach-name">Voluntary precheck</span></th>
           <td data-label="Decides from">Fresh lookup</td><td class="yes" data-label="Checks current state">Yes</td><td class="no" data-label="Write requires a passing check">No</td><td class="no" data-label="Write enforces eligibility">No</td>
-          <td class="note" data-label="Notes">Simulates an agent that chooses to check. The policy always checks, so B says nothing about real prompt compliance.</td>
+          <td class="note" data-label="Notes">Stands in for an agent told to check first. It always does, so it says nothing about whether a real model would.</td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">C</span><span class="approach-name">Required precheck</span></th>
-          <td data-label="Decides from">Fresh lookup</td><td class="yes" data-label="Checks current state">Yes</td><td class="yes" data-label="Write requires a passing check">Yes</td><td class="no" data-label="Write enforces eligibility">No</td>
-          <td class="note" data-label="Notes">An application wrapper rejects writes without a positive check. That check can still be stale.</td>
+          <td data-label="Decides from">Fresh lookup</td><td class="yes" data-label="Checks current state">Yes</td><td class="yes" data-label="Write requires a passing check">Yes (caller-supplied)</td><td class="no" data-label="Write enforces eligibility">No</td>
+          <td class="note" data-label="Notes">The write wrapper refuses unless the caller passes a positive check result. It trusts the caller, and the result can be stale.</td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">D</span><span class="approach-name">Precheck + atomic guard</span></th>
-          <td data-label="Decides from">Fresh lookup</td><td class="yes" data-label="Checks current state">Yes</td><td class="yes" data-label="Write requires a passing check">Yes</td><td class="yes key" data-label="Write enforces eligibility">Yes, atomically</td>
+          <th scope="row"><span class="approach-tag">D</span><span class="approach-name">Precheck + guarded insert</span></th>
+          <td data-label="Decides from">Fresh lookup</td><td class="yes" data-label="Checks current state">Yes</td><td class="yes" data-label="Write requires a passing check">Yes (caller-supplied)</td><td class="yes key" data-label="Write enforces eligibility">Yes, in the <code>INSERT</code></td>
           <td class="note" data-label="Notes">Conditional <code>INSERT … SELECT … WHERE eligible = 1</code> inside <code>BEGIN IMMEDIATE</code>.</td>
         </tr>
       </tbody>
@@ -135,11 +124,11 @@
   </div>
 
   <div class="prose measure" style="margin-top:28px">
-    <p>The six scenarios cover the ways memory and reality can disagree: eligibility unchanged, stale “eligible”, stale “ineligible”, a worker record that no longer exists, a lookup that errors, and eligibility revoked between check and write. Expected outcomes were written into the <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/fixtures.json">fixtures</a> before the runs.</p>
+    <p>The six scenarios: eligibility unchanged, memory says eligible but the worker isn&rsquo;t, memory says ineligible but the worker is, the worker record is gone, the lookup errors, and eligibility is revoked between check and write. Each <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/fixtures.json">fixture</a> also lists its expected outcome, and the tests check all 24.</p>
   </div>
 
   <details>
-    <summary>How each metric is counted <span class="muted">· denominators differ</span></summary>
+    <summary>How each metric is counted <span class="muted">(the denominators differ)</span></summary>
     <div class="prose measure small" style="font-size:16px">
       <ul>
         <li><strong>Invalid commits</strong>: an assignment was written while the worker was not eligible at write time. Out of all 6 tasks.</li>
@@ -147,18 +136,17 @@
         <li><strong>Eligible tasks completed</strong>: the worker was eligible at write time and the assignment was written. Out of the 3 eligible tasks (unchanged, stale “ineligible”, lookup error).</li>
         <li><strong>Unnecessary refusals</strong>: the worker was eligible at write time but the approach refused. Out of the same 3 tasks.</li>
       </ul>
-      <p>All metrics are computed from recorded event traces, not from expected labels. Full definitions are in the <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">methodology</a>.</p>
+      <p>Full definitions are in the <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">methodology</a>.</p>
     </div>
   </details>
 </section>
 
 <section id="results" aria-labelledby="results-title">
-  <p class="kicker">D · Results</p>
-  <h2 id="results-title">Fewer invalid writes, the same completion</h2>
+  <h2 id="results-title">Results</h2>
 
   <div class="figure table-scroll">
     <table class="results-table" id="summary-table">
-      <caption>Outcomes by approach <span class="muted">· one square per task</span></caption>
+      <caption>By approach <span class="muted">(one square per task)</span></caption>
       <thead>
         <tr>
           <th scope="col">Approach</th>
@@ -191,7 +179,7 @@
           <td data-label="Unnecessary refusals (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">D</span><span class="approach-name">Precheck + atomic guard</span></th>
+          <th scope="row"><span class="approach-tag">D</span><span class="approach-name">Precheck + guarded insert</span></th>
           <td data-label="Invalid commits (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Incorrect recommendations (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Eligible completed (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
@@ -203,7 +191,7 @@
   <p class="figure-note">B and C are identical by construction. They run the same checking policy, and C’s extra requirement only matters when a write is attempted without a passing check, which never happens here. The two denominators (6 tasks, 3 eligible tasks) should not be combined.</p>
 
   <div class="figure">
-    <h3 id="matrix-title">What happened in each scenario</h3>
+    <h3 id="matrix-title">Every run</h3>
     <ul class="legend" aria-label="Legend">
       <li><span class="swatch o-write"></span>Wrote: eligible, assigned</li>
       <li><span class="swatch o-refuse"></span>Refused: ineligible, not assigned</li>
@@ -219,7 +207,7 @@
             <th scope="col"><span class="approach-tag">A</span>Memory</th>
             <th scope="col"><span class="approach-tag">B</span>Voluntary</th>
             <th scope="col"><span class="approach-tag">C</span>Required</th>
-            <th scope="col"><span class="approach-tag">D</span>Atomic</th>
+            <th scope="col"><span class="approach-tag">D</span>Guarded</th>
           </tr>
         </thead>
         <tbody>
@@ -228,42 +216,42 @@
             <td data-label="A · Memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Wrote</b><span>memory: yes</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Wrote</b><span>check: yes</span></span></td>
             <td data-label="C · Required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Wrote</b><span>check: yes</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Wrote</b><span>check + guard: yes</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Wrote</b><span>check + guard: yes</span></span></td>
           </tr>
           <tr>
             <th scope="row">2. Stale “eligible”<small>memory yes · db no → no</small></th>
             <td data-label="A · Memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Invalid write</b><span>memory: yes</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no</span></span></td>
             <td data-label="C · Required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no</span></span></td>
           </tr>
           <tr>
             <th scope="row">3. Stale “ineligible”<small>memory no · db yes → yes</small></th>
             <td data-label="A · Memory"><span class="cell o-missed" data-scenario="stale_false" data-approach="A" data-recommended="false" data-committed="false"><b>Missed</b><span>memory: no</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Wrote</b><span>check: yes</span></span></td>
             <td data-label="C · Required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Wrote</b><span>check: yes</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Wrote</b><span>check + guard: yes</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Wrote</b><span>check + guard: yes</span></span></td>
           </tr>
           <tr>
             <th scope="row">4. Worker missing<small>memory yes · db none → none</small></th>
             <td data-label="A · Memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Invalid write</b><span>memory: yes</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no record</span></span></td>
             <td data-label="C · Required"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no record</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no record</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check: no record</span></span></td>
           </tr>
           <tr>
             <th scope="row">5. Lookup fails<small>memory yes · db yes → yes</small></th>
             <td data-label="A · Memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Wrote</b><span>memory: yes</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Missed</b><span>lookup error</span></span></td>
             <td data-label="C · Required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Missed</b><span>lookup error</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Missed</b><span>lookup error</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Missed</b><span>lookup error</span></span></td>
           </tr>
           <tr>
             <th scope="row">6. Eligibility revoked<small>memory yes · db yes → no</small></th>
             <td data-label="A · Memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Invalid write</b><span>memory: yes</span></span></td>
             <td data-label="B · Voluntary"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Invalid write</b><span>check went stale</span></span></td>
             <td data-label="C · Required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Invalid write</b><span>check went stale</span></span></td>
-            <td data-label="D · Atomic"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Blocked at write</b><span>guard: no</span></span></td>
+            <td data-label="D · Guarded"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Blocked at write</b><span>guard: no</span></span></td>
           </tr>
         </tbody>
       </table>
@@ -272,15 +260,14 @@
   </div>
 
   <div class="callout prose">
-    <p><strong>Row 6 is the only row where B, C and D differ, and it is the reason for the experiment.</strong> Rows 3 and 5 explain why completion stayed flat: memory-only missed the stale “ineligible” task, while every checking approach missed the lookup-error task by failing closed.</p>
+    <p>Row 6 is why I ran this, and it&rsquo;s the only row where B, C and D differ. Rows 3 and 5 explain the flat completion numbers: A missed the task where memory was wrongly negative, and B, C and D refused when the lookup failed.</p>
   </div>
 </section>
 
 <section id="failure" aria-labelledby="failure-title">
-  <p class="kicker">E · The interesting failure</p>
-  <h2 id="failure-title">A correct check, then an invalid write</h2>
+  <h2 id="failure-title">Scenario 6, step by step</h2>
   <div class="prose measure">
-    <p>Scenario 6, step by step. Approaches B, C and D behave identically until the moment they write.</p>
+    <p>B, C and D behave identically until the write.</p>
   </div>
 
   <ol class="toctou" aria-label="Time-of-check to time-of-use sequence">
@@ -291,12 +278,12 @@
     </li>
     <li class="t-step">
       <span class="t-n" aria-hidden="true">2</span>
-      <div class="t-body"><h3>The application checks</h3><p>B, C and D look up current state. The answer is yes, and it is correct at this moment.</p></div>
+      <div class="t-body"><h3>The application checks</h3><p>B, C and D look up current state. It says yes, which is true right then.</p></div>
       <div class="t-state">check → <b>eligible</b></div>
     </li>
     <li class="t-step">
       <span class="t-n" aria-hidden="true">3</span>
-      <div class="t-body"><h3>Eligibility is revoked</h3><p>The fixture commits a revocation after the decision and before the write. It is injected sequentially: no threads, no sleeps, no timing luck.</p></div>
+      <div class="t-body"><h3>Eligibility is revoked</h3><p>The fixture revokes eligibility after the decision and before the write. It runs sequentially, in the same process.</p></div>
       <div class="t-state changed">workers.eligible = <b>0</b></div>
     </li>
     <li class="t-step">
@@ -317,22 +304,22 @@ VALUES ('toy-shift', 'toy-worker');</code></pre>
         </div>
         <div class="lane o-blocked">
           <p class="lane-label">6 · Approach D</p>
-          <h3>Atomic eligibility guard</h3>
-          <p>The write carries its own condition, evaluated inside the write transaction.</p>
+          <h3>Guarded insert</h3>
+          <p>The insert checks eligibility itself, inside the transaction.</p>
           <pre tabindex="0"><code>BEGIN IMMEDIATE;
 INSERT INTO assignments (shift, worker)
 SELECT 'toy-shift', id FROM workers
 WHERE id = 'toy-worker' AND eligible = 1;
 COMMIT;</code></pre>
-          <p class="outcome"><span aria-hidden="true">✓</span> 0 rows inserted, write rejected</p>
+          <p class="outcome"><span aria-hidden="true">✓</span> 0 rows inserted, returns <code>ineligible_or_missing</code></p>
         </div>
       </div>
     </li>
   </ol>
-  <p class="figure-note">SQL abridged from <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py#L53-L74"><code>Store.commit</code> in experiment.py</a>. D’s predicate reads eligibility in the same statement that writes, and <code>BEGIN IMMEDIATE</code> takes SQLite’s write lock first, so no other writer can change the record in between.</p>
+  <p class="figure-note">SQL abridged from <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py#L53-L74"><code>Store.commit</code> in experiment.py</a>. D&rsquo;s eligibility condition is part of a single <code>INSERT &hellip; SELECT</code>; <code>BEGIN IMMEDIATE</code> makes the already-assigned check and the insert one unit against other writers. One caveat: the revocation happens before D&rsquo;s transaction starts, on a single in-memory connection, so <code>BEGIN IMMEDIATE</code> never has another writer to block. This scenario shows that checking at write time catches the change. It does not test the guard against concurrent writers.</p>
 
   <details>
-    <summary>Recorded trace: scenario 6, approach C <span class="muted">· invalid write</span></summary>
+    <summary>Recorded trace: scenario 6, approach C <span class="muted">(invalid write)</span></summary>
 <pre tabindex="0" data-trace="eligibility_flip/C"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "eligible": true, "reason": "eligible"},
@@ -344,7 +331,7 @@ COMMIT;</code></pre>
 ]</code></pre>
   </details>
   <details>
-    <summary>Recorded trace: scenario 6, approach D <span class="muted">· blocked at write</span></summary>
+    <summary>Recorded trace: scenario 6, approach D <span class="muted">(blocked at write)</span></summary>
 <pre tabindex="0" data-trace="eligibility_flip/D"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "eligible": true, "reason": "eligible"},
@@ -358,52 +345,58 @@ COMMIT;</code></pre>
 </section>
 
 <section id="learned" aria-labelledby="learned-title">
-  <p class="kicker">F · What I learned</p>
-  <h2 id="learned-title">What I took away</h2>
+  <h2 id="learned-title">What I took from it</h2>
   <div class="prose measure">
-    <p><strong>A check is a snapshot, not a guarantee.</strong> B and C checked authoritative state on every task and still wrote one invalid assignment. Being right at decision time does not protect a later write.</p>
-    <p><strong>Enforce the invariant where the write happens.</strong> Putting the eligibility condition into the insert, inside a write transaction, closed the gap in every tested case, and it does not depend on the caller remembering to check.</p>
-    <p><strong>Safety and usefulness need separate metrics.</strong> With a single error rate, D would look strictly better. Measured separately, it prevented invalid writes but completed no more eligible tasks than memory-only. It failed in a different place: refusing on lookup error, where memory-only missed the stale “ineligible” task.</p>
-    <p><strong>Failing closed is a policy choice with a cost.</strong> Refusing when the lookup errors is defensible for assignments, but here it showed up as a lost eligible task. A real system would need retries or another recovery path, which this experiment does not model.</p>
+    <p>The check in B and C was right when it ran. By the time the write happened, it wasn&rsquo;t. Putting the condition in the <code>INSERT</code> fixed that case, and it doesn&rsquo;t depend on the caller remembering to check.</p>
+    <p>I nearly reported a single error rate. With one number, D would have looked strictly better than everything else. Counting invalid writes and completed tasks separately shows it blocked one more bad write and finished no more real tasks, though with these fixtures each of those comes down to a single scenario.</p>
+    <p>D refuses when the lookup errors. For assignments that&rsquo;s probably the right default, but here it cost an eligible task.</p>
+  </div>
+</section>
+
+<section id="open" aria-labelledby="open-title">
+  <h2 id="open-title">Open questions</h2>
+  <div class="prose measure">
+    <ul>
+      <li><strong>Does the guard matter, or just checking late?</strong> Because the revocation is applied before the write starts, re-reading eligibility right before an unguarded insert would also score 0/6 here. To tell them apart I&rsquo;d need real concurrency, meaning a file-backed database with two connections and a revocation that lands between the re-read and the insert.</li>
+      <li><strong>Other databases.</strong> On Postgres at READ COMMITTED, <code>INSERT &hellip; SELECT &hellip; WHERE eligible = 1</code> can still race a concurrent update. It would need a row lock (<code>FOR SHARE</code>), SERIALIZABLE isolation, or a trigger. I haven&rsquo;t tested that.</li>
+      <li>D only checks at insert time. If eligibility is revoked after the assignment is saved, the assignment stays. The revoke path would have to deal with existing assignments.</li>
+      <li>In an agent, a rejected write should come back as a structured error the agent can act on: retry the lookup, re-plan, or ask a person. The lookup-failure scenario is where that choice matters.</li>
+    </ul>
   </div>
 </section>
 
 <section id="limitations" aria-labelledby="limitations-title">
-  <p class="kicker">G · Limitations</p>
-  <h2 id="limitations-title">What this does not show</h2>
-  <div class="prose">
-    <ul class="limits">
-      <li>No real LLM was evaluated and no model API was called. The “agent” is a fixed Python policy.</li>
-      <li>Only six hand-written synthetic scenarios: one worker, one shift, one rule.</li>
-      <li>Checking behaviour is simulated. B always checks by construction, so it cannot show whether a model would follow a “check first” instruction.</li>
-      <li>The race is injected sequentially between two steps. It is not a concurrent load test.</li>
-      <li>C’s “required check” is an in-process wrapper, not an access-control system.</li>
-      <li>The results do not establish production reliability. Recorded latencies are descriptive only.</li>
-      <li>This is not a reproduction of MemRiskBench, its benchmark, or its model scores.</li>
+  <h2 id="limitations-title">Limitations</h2>
+  <div class="prose measure">
+    <ul>
+      <li>No LLM or model API was used. The &ldquo;agent&rdquo; is a fixed Python policy, so approach B can&rsquo;t show whether a model would follow a check-first instruction.</li>
+      <li>Six hand-written scenarios with one worker, one shift and one rule.</li>
+      <li>The revocation is applied sequentially on one in-memory connection. Nothing runs concurrently.</li>
+      <li>C&rsquo;s required check is an in-process wrapper, not access control.</li>
+      <li>This is not a reproduction of MemRiskBench or its results.</li>
     </ul>
   </div>
 </section>
 
 <section id="reproduce" aria-labelledby="reproduce-title">
-  <p class="kicker">H · Reproduce</p>
-  <h2 id="reproduce-title">Run it yourself</h2>
-  <p class="measure">Python 3.13 and nothing else: no packages, network access, or credentials. On Windows, use <code>python</code> instead of <code>python3</code>.</p>
+  <h2 id="reproduce-title">Run it</h2>
+  <p class="measure">You need Python 3.13 and nothing else. On Windows, use <code>python</code> instead of <code>python3</code>.</p>
 <pre class="measure" tabindex="0" style="max-width:none"><code>git clone https://github.com/kishanssg/ai-thinking-lab.git
 cd ai-thinking-lab
 python3 -m unittest discover -s experiments/001-memory-reliability -p "test_*.py" -v
 python3 experiments/001-memory-reliability/experiment.py --output my-run.json</code></pre>
-  <p class="measure small muted" style="margin-top:12px">Logical outcomes repeat exactly; timestamps and timings vary. Using <code>--output</code> keeps the saved run intact. CI runs the tests and re-checks the summary counts on every push.</p>
+  <p class="measure small muted" style="margin-top:12px">The outcomes repeat exactly; timestamps and timings don&rsquo;t. <code>--output</code> keeps the saved run from being overwritten.</p>
 
   <ul class="evidence" aria-label="Evidence">
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py">Source code</a><span>experiment.py: store, policies, metrics</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/test_experiment.py">Tests</a><span>8 unit tests, all 24 expected outcomes</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/fixtures.json">Fixtures</a><span>6 scenarios with expected outcomes</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/results.json">Saved results</a><span>24 event traces and computed summary</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/tests.txt">Test output</a><span>Saved output of the recorded run</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">Methodology</a><span>Policies, enforcement, metric definitions</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/findings.md">Findings</a><span>Per-scenario observations</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/attribution.md">Research attribution</a><span>Citation and scope relative to the paper</span></li>
-    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/.github/workflows/tests.yml">CI workflow</a><span>Tests and result checks on every push</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py">experiment.py</a><span>Store, approaches, metrics (about 190 lines)</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/test_experiment.py">test_experiment.py</a><span>8 tests, including all 24 expected outcomes</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/fixtures.json">fixtures.json</a><span>The 6 scenarios and expected outcomes</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/results.json">results.json</a><span>All 24 traces and the computed summary</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/tests.txt">tests.txt</a><span>Saved test output</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">methodology.md</a><span>Metric definitions in full</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/findings.md">findings.md</a><span>Per-scenario notes</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/attribution.md">attribution.md</a><span>Citation and how this relates to the paper</span></li>
+    <li><a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/.github/workflows/tests.yml">tests.yml</a><span>CI: tests, result counts, page check</span></li>
   </ul>
 </section>
 
@@ -411,9 +404,9 @@ python3 experiments/001-memory-reliability/experiment.py --output my-run.json</c
 
 <footer class="site-footer">
   <div class="wrap">
-    <p><strong>Research context.</strong> Inspired by Jianhua Jiang, Dongbo Yuan and Weihua Li, <a href="https://arxiv.org/abs/2609.14976"><cite>MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents</cite></a>, arXiv:2609.14976 (preprint, September 2026). This is independent work. No affiliation with, endorsement by, or review from the authors is implied.</p>
-    <p id="attribution"><strong>AI assistance.</strong> ChatGPT and OpenAI Codex assisted with planning, implementation, testing and documentation of this experiment; Claude Code assisted with the website redesign. I directed the questions and the work and reviewed the evidence; I don’t claim to have hand-written every line.</p>
-    <p><a href="../../">AI Thinking Lab</a> · <a href="https://github.com/kishanssg/ai-thinking-lab">Source on GitHub</a> · <a href="https://github.com/kishanssg">kishanssg</a></p>
+    <p>Inspired by Jianhua Jiang, Dongbo Yuan and Weihua Li, <a href="https://arxiv.org/abs/2609.14976"><cite>MemRiskBench: Trace-Aware Risk-Preserving Evaluation for Long-Horizon LLM Agents</cite></a>, arXiv:2609.14976 (preprint, September 2026). Independent work; the authors weren&rsquo;t involved.</p>
+    <p id="attribution">Built with help from ChatGPT and OpenAI Codex (experiment and docs) and Claude Code (this site). I chose the question and checked the results.</p>
+    <p><a href="../../">AI Thinking Lab</a> &middot; <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a></p>
   </div>
 </footer>
 </body>
