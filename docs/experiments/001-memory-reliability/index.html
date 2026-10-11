@@ -8,6 +8,9 @@
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&amp;family=Playfair+Display:wght@700;900&amp;display=swap">
 <link rel="stylesheet" href="../../assets/site.css">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="AI Thinking Lab">
@@ -23,10 +26,14 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="site-header">
+<header class="masthead">
   <div class="wrap">
-    <a class="brand" href="../../">AI Thinking Lab</a>
-    <nav class="site-nav" aria-label="Site">
+    <div class="mast-top">
+      <p class="ear">Research. Experiments. Evidence.</p>
+      <a class="mast-title" href="../../">AI Thinking Lab</a>
+      <p class="ear ear-right"><span>Issue No. 001</span> <span>September 2026</span></p>
+    </div>
+    <nav class="mast-nav" aria-label="Site">
       <a href="../../#experiments">Experiments</a>
       <a href="../../#method">How I work</a>
       <a href="../../#about">About</a>
@@ -37,13 +44,15 @@
 
 <main id="main" class="wrap">
 
-<div class="intro">
-  <p class="eyebrow">Experiment 001 &middot; September 2026</p>
+<div class="intro article-head">
+  <p class="section-label">Experiment 001 &middot; Feature</p>
   <h1>What stops a system from acting on old information?</h1>
+  <p class="deck">Checking first still let a bad booking through. Checking again at the moment of saving stopped it.</p>
+  <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
-  <h2 id="glimpse-title">The short version</h2>
+  <h2 id="glimpse-title">At a glance</h2>
   <dl class="glimpse-list">
     <div><dt>The problem</dt><dd>A system remembered that a worker was allowed to take a shift. That changed. The system booked the worker anyway.</dd></div>
     <div><dt>What I tried</dt><dd>Four ways to stop that from happening, tested in 6 situations each.</dd></div>
@@ -205,47 +214,110 @@
 
 <section id="failure" aria-labelledby="failure-title">
   <h2 id="failure-title">Why checking first wasn&rsquo;t enough</h2>
-  <p class="measure muted">Situation 6, one step at a time.</p>
+  <p class="measure muted">Situation 6 is the one where the answer changes right after the check. Here it is as a comic strip.</p>
 
-  <ol class="toctou" aria-label="Situation 6, step by step">
-    <li class="t-step">
-      <span class="t-n" aria-hidden="true">1</span>
-      <div class="t-body"><h3>Sam is allowed</h3><p>The records say yes. Memory says yes too.</p></div>
-      <div class="t-state">Sam: <b>allowed</b></div>
-    </li>
-    <li class="t-step">
-      <span class="t-n" aria-hidden="true">2</span>
-      <div class="t-body"><h3>The app checks</h3><p>It looks up the latest answer: yes. That&rsquo;s true right now.</p></div>
-      <div class="t-state">Check: <b>yes</b></div>
-    </li>
-    <li class="t-step">
-      <span class="t-n" aria-hidden="true">3</span>
-      <div class="t-body"><h3>Sam stops being allowed</h3><p>The records change, just after the check.</p></div>
-      <div class="t-state changed">Sam: <b>not allowed</b></div>
-    </li>
-    <li class="t-step">
-      <span class="t-n" aria-hidden="true">4</span>
-      <div class="t-body"><h3>The app saves the booking</h3><p>It still has the &ldquo;yes&rdquo; from step 2, so it goes ahead.</p></div>
-      <div class="t-state">Holding: <b>old &ldquo;yes&rdquo;</b></div>
-    </li>
-    <li class="t-step split">
-      <span class="t-n" aria-hidden="true">&rarr;</span>
-      <div class="lanes">
-        <div class="lane o-invalid">
-          <p class="lane-label">Methods B and C</p>
-          <h3>Save without checking again</h3>
-          <p>The save trusts the earlier answer.</p>
-          <p class="outcome"><span aria-hidden="true">&#10005;</span> Sam gets booked by mistake</p>
-        </div>
-        <div class="lane o-blocked">
-          <p class="lane-label">Method D</p>
-          <h3>Save only if still allowed</h3>
-          <p>The save looks at the records again, at the same moment it saves.</p>
-          <p class="outcome"><span aria-hidden="true">&#10003;</span> Nothing is saved. The app gets a clear &ldquo;not allowed&rdquo;.</p>
+  <figure class="comic" aria-labelledby="comic-title">
+    <figcaption class="comic-title" id="comic-title">Sam and the Booking App <span>Situation 6, in five panels</span></figcaption>
+    <div class="panels">
+      <div class="panel">
+        <p class="caption-box"><span class="sr-only">Panel 1, </span>9:00:00</p>
+        <p class="bubble"><span class="sr-only">Sam says: </span>I&rsquo;m allowed to work Saturday!</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="Sam stands next to the records, which show a green tick."><g transform="translate(40 50)">
+      <path d="M8 92 Q8 44 25 40 Q42 44 42 92 Z" class="ink fill-shirt"/>
+      <circle cx="25" cy="20" r="14" class="ink fill-panel"/>
+      <path d="M11 17 Q14 4 26 5 Q38 5 39 17 Q32 10 24 12 Q17 12 11 17 Z" class="fill-ink"/>
+      <circle cx="20" cy="19" r="1.8" class="fill-ink"/><circle cx="30" cy="19" r="1.8" class="fill-ink"/>
+      <path d="M19 23 Q25 28 31 23" class="ink"/>
+    </g><g transform="translate(140 70)">
+      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
+      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
+      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
+      <path d="M12 34 L20 42 L33 25" class="ink ok-stroke" style="stroke-width:5"/>
+    </g></svg>
+      </div>
+      <div class="panel">
+        <p class="caption-box"><span class="sr-only">Panel 2, </span>9:00:01</p>
+        <p class="bubble"><span class="sr-only">The app says: </span>Let me check&hellip; Yes, Sam is allowed.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The booking app holds a magnifying glass up to the records. They show a green tick."><g transform="translate(30 60) scale(1.0)">
+      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
+      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
+      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
+      <path d="M22 35 Q30 40 38 35" class="ink"/>
+      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
+      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
+    </g><g transform="translate(140 70)">
+      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
+      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
+      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
+      <path d="M12 34 L20 42 L33 25" class="ink ok-stroke" style="stroke-width:5"/>
+    </g><circle cx="120" cy="95" r="14" class="ink fill-none"/><line x1="110" y1="105" x2="98" y2="118" class="ink" style="stroke-width:5"/></svg>
+      </div>
+      <div class="panel">
+        <p class="caption-box"><span class="sr-only">Panel 3, </span>9:00:02 &middot; Meanwhile&hellip;</p>
+        <p class="narration">The records change, just after the check.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The records now show a red cross and a stamp that says not allowed."><g transform="translate(85 60)">
+      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
+      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
+      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
+      <path d="M13 25 L31 43 M31 25 L13 43" class="ink no-stroke" style="stroke-width:5"/>
+    </g><g transform="translate(110 42) rotate(-8)">
+      <rect x="-80" y="-16" width="160" height="32" rx="3" class="stamp-no"/>
+      <text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">NOT ALLOWED</text>
+    </g></svg>
+      </div>
+      <div class="panel">
+        <p class="caption-box"><span class="sr-only">Panel 4, </span>9:00:03</p>
+        <p class="bubble"><span class="sr-only">The app says: </span>I already checked. Saving the booking!</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app happily holds up its old note with a green tick."><g transform="translate(40 60) scale(1.0)">
+      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
+      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
+      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
+      <path d="M22 35 Q30 40 38 35" class="ink"/>
+      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
+      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
+    </g><g transform="translate(120 70)"><rect x="0" y="0" width="56" height="40" rx="3" class="ink fill-note"/><path d="M14 20 L24 30 L42 10" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
+      </div>
+      <div class="panel panel-split">
+        <p class="caption-box"><span class="sr-only">Panel 5, </span>9:00:03 &middot; Two endings</p>
+        <div class="split">
+          <div class="half o-invalid">
+            <p class="half-label">Methods B and C</p>
+            <p class="bubble"><span class="sr-only">The app says: </span>Booked!</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app books Sam. A red stamp says mistake."><g transform="translate(20 60) scale(0.9)">
+      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
+      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
+      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
+      <path d="M22 35 Q30 40 38 35" class="ink"/>
+      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
+      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
+    </g><g transform="translate(140 95) rotate(-10)">
+      <rect x="-58" y="-15" width="116" height="30" rx="3" class="stamp-no"/>
+      <text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">MISTAKE</text>
+    </g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10005;</span> Sam is booked by mistake</p>
+          </div>
+          <div class="half o-blocked">
+            <p class="half-label">Method D</p>
+            <p class="bubble"><span class="sr-only">The app says: </span>Checking again as I save&hellip; Not allowed.</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app looks at the records again while saving and sees the red cross."><g transform="translate(20 60) scale(0.9)">
+      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
+      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
+      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
+      <path d="M22 37 L38 37" class="ink"/>
+      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
+      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
+    </g><g transform="translate(140 72)">
+      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
+      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
+      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
+      <path d="M13 25 L31 43 M31 25 L13 43" class="ink no-stroke" style="stroke-width:5"/>
+    </g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10003;</span> Nothing is saved</p>
+          </div>
         </div>
       </div>
-    </li>
-  </ol>
+    </div>
+  </figure>
 
   <details class="eng">
     <summary>For engineers: the SQL, and an honest caveat</summary>

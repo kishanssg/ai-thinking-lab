@@ -40,7 +40,7 @@ python3 docs/check_site.py
 python3 -m http.server 8000 --directory docs   # then open http://localhost:8000/
 ```
 
-![Desktop capture of the Experiment 001 results: outcomes by approach and the per-scenario matrix](docs/assets/experiment-001-desktop.png)
+![Comic strip from the Experiment 001 page: the app checks that Sam is allowed, the records change, and only the check-while-saving method avoids the mistaken booking](docs/assets/experiment-001-desktop.png)
 
 ## Observed results
 
