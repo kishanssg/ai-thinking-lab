@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Experiment 001: Acting on old information · AI Thinking Lab</title>
-<meta name="description" content="A small test of what stops a system from booking a worker based on old information. Checking first still let 1 of 6 bad bookings through. Checking again while saving stopped all of them. No AI model was used.">
+<title>Experiment 001: Checking first wasn&rsquo;t enough &middot; AI Thinking Lab</title>
+<meta name="description" content="A small test of the safety net around an AI refund agent. Checking first still let 1 of 6 wrong refunds through. Checking again at the moment of refunding stopped all of them.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
@@ -14,13 +14,13 @@
 <link rel="stylesheet" href="../../assets/site.css">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="AI Thinking Lab">
-<meta property="og:title" content="Experiment 001: What stops a system from acting on old information?">
-<meta property="og:description" content="Checking first still let 1 of 6 bad bookings through. Checking again while saving stopped all of them. A small, honest test with the code and results.">
+<meta property="og:title" content="Checking first still let a double refund through">
+<meta property="og:description" content="A small test of the safety net around an AI refund agent: checking first let 1 of 6 wrong refunds through; checking again at the moment of refunding stopped all of them.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-experiment-001.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Bad bookings out of 6: trust memory 3, check first by choice 1, check first required 1, check while saving 0. Every method booked 2 of 3 right workers.">
+<meta property="og:image:alt" content="Wrong refunds out of 6: trust memory 3, check first by choice 1, check first required 1, check while refunding 0.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -31,7 +31,7 @@
     <div class="mast-top">
       <p class="ear">Research. Experiments. Evidence.</p>
       <a class="mast-title" href="../../">AI Thinking Lab</a>
-      <p class="ear ear-right"><span>Issue No. 001</span> <span>September 2026</span></p>
+      <p class="ear ear-right"><span>September 2026</span></p>
     </div>
     <nav class="mast-nav" aria-label="Site">
       <a href="../../#experiments">Experiments</a>
@@ -46,29 +46,31 @@
 
 <div class="intro article-head">
   <p class="section-label">Experiment 001 &middot; Feature</p>
-  <h1>What stops a system from acting on old information?</h1>
-  <p class="deck">Checking first still let a bad booking through. Checking again at the moment of saving stopped it.</p>
+  <h1>Checking first wasn&rsquo;t enough</h1>
+  <p class="deck">In a small test, an AI refund agent&rsquo;s safety check still let a double refund through. Checking again at the moment of refunding stopped it.</p>
   <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
+  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed with a guarded write. Python + SQLite, 24 recorded runs.</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
   <h2 id="glimpse-title">At a glance</h2>
   <dl class="glimpse-list">
-    <div><dt>The problem</dt><dd>A system remembered that a worker was allowed to take a shift. That changed. The system booked the worker anyway.</dd></div>
-    <div><dt>What I tried</dt><dd>Four ways to stop that from happening, tested in 6 situations each.</dd></div>
-    <div><dt>What worked</dt><dd>Checking again <em>at the moment of saving</em> stopped every bad booking: <span class="num">0 of 6</span>. Checking a moment earlier still let <span class="num">1 of 6</span> through.</dd></div>
-    <div><dt>The catch</dt><dd>No method booked more of the right workers. Each one missed <span class="num">1 of 3</span>, for different reasons.</dd></div>
-    <div><dt>Keep in mind</dt><dd>This is a small practice test on my own computer. No AI model was used, and it doesn&rsquo;t prove anything about real systems.</dd></div>
+    <div><dt>The problem</dt><dd>An AI agent that handles refunds remembered that an order could be refunded. Someone else refunded it first. The agent refunded it again.</dd></div>
+    <div><dt>What I tried</dt><dd>Four ways to stop that, each tested in the same 6 situations.</dd></div>
+    <div><dt>What worked</dt><dd>Checking again <em>at the moment of refunding</em> stopped every wrong refund: <span class="num">0 of 6</span>. Checking a moment earlier still let <span class="num">1 of 6</span> through.</dd></div>
+    <div><dt>The catch</dt><dd>No method gave more of the fair refunds. Each one refused a fair refund once, for different reasons.</dd></div>
+    <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
 </section>
 
 <section id="story" aria-labelledby="story-title">
   <h2 id="story-title">The story</h2>
   <div class="prose measure">
-    <p>Imagine an app that books workers for shifts. Last week it noted that Sam is allowed to work a certain shift. Today Sam isn&rsquo;t allowed anymore, but the app still remembers the old answer.</p>
-    <p>If the app trusts its memory, it books Sam by mistake. If it checks first, it sees the change and says no. Good.</p>
-    <p>But what if the change happens in the tiny gap <em>after</em> the check and <em>before</em> the booking is saved? The check said yes. It was right when it looked. The booking still goes through. That gap is what this experiment is about.</p>
-    <p>Why I care: AI assistants are starting to do things like this. They remember facts and then act on them. I read a research paper about AI memory going stale (<a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>) and wanted to see what the software around an AI can do to catch it.</p>
+    <p>Imagine an AI agent that handles refunds for an online shop. Earlier today it learned that order #42 can be refunded, and it remembers that.</p>
+    <p>If the agent trusts its memory, it might refund an order that was already refunded. If it checks first, it sees the change and says no. Good.</p>
+    <p>But what if a teammate refunds the order in the tiny gap <em>after</em> the agent checks and <em>before</em> it sends the money? The check said yes, and it was right when it looked. The refund still goes out, and the shop pays twice. That gap is what this experiment is about.</p>
+    <p>Why I care: AI agents are starting to remember things and then act with real tools, like sending money. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
+    <p>One honesty note: the test code uses a plain yes/no &ldquo;allowed&rdquo; flag (it calls it a worker and a shift). The refund story is an everyday picture of that same check.</p>
   </div>
 </section>
 
@@ -80,13 +82,13 @@
       <thead><tr><th scope="col">Way</th><th scope="col">What it does</th></tr></thead>
       <tbody>
         <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th><td data-label="What it does">Uses what it remembers. Never checks.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th><td data-label="What it does">Looks up the latest answer before booking. Nothing forces it to.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th><td data-label="What it does">Same as B, but the app refuses to book unless a check said yes.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">D</span>Check while saving</th><td data-label="What it does">Same as C, and the save itself only works if the worker is still allowed at that moment.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th><td data-label="What it does">Looks up the order before refunding. Nothing forces it to.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th><td data-label="What it does">Same as B, but the refund tool won&rsquo;t run unless a check said yes.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">D</span>Check while refunding</th><td data-label="What it does">Same as C, and the refund only goes through if the order is still refundable at that exact moment.</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;the answer changes right after the check&rdquo;. That makes 24 tests.</p>
+  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;someone refunds it right after the check&rdquo;. That makes 24 tests.</p>
 </section>
 
 <section id="results" aria-labelledby="results-title">
@@ -98,40 +100,40 @@
       <thead>
         <tr>
           <th scope="col">Method</th>
-          <th scope="col">Bad bookings<span class="dir">out of 6 &middot; fewer is better</span></th>
+          <th scope="col">Wrong refunds<span class="dir">out of 6 &middot; fewer is better</span></th>
           <th scope="col">Wrong &ldquo;yes&rdquo; decisions<span class="dir">out of 6 &middot; fewer is better</span></th>
-          <th scope="col">Right workers booked<span class="dir">out of 3 &middot; more is better</span></th>
-          <th scope="col">Right workers turned away<span class="dir">out of 3 &middot; fewer is better</span></th>
+          <th scope="col">Fair refunds given<span class="dir">out of 3 &middot; more is better</span></th>
+          <th scope="col">Fair refunds refused<span class="dir">out of 3 &middot; fewer is better</span></th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <th scope="row"><span class="approach-tag">A</span>Trust memory</th>
-          <td data-label="Bad bookings (of 6)"><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3/6</span></span></td>
+          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="A" data-metric="incorrect_affirmative_recommendations" data-value="2/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="value">2/6</span></span></td>
-          <td data-label="Right workers booked (of 3)"><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Right workers turned away (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">B</span>Check first, by choice</th>
-          <td data-label="Bad bookings (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
+          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="B" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Right workers booked (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Right workers turned away (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">C</span>Check first, required</th>
-          <td data-label="Bad bookings (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
+          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="C" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Right workers booked (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Right workers turned away (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">D</span>Check while saving</th>
-          <td data-label="Bad bookings (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
+          <th scope="row"><span class="approach-tag">D</span>Check while refunding</th>
+          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Right workers booked (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Right workers turned away (of 3)"><span class="metric" data-approach="D" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="D" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
       </tbody>
     </table>
@@ -141,11 +143,11 @@
   <div class="figure">
     <h3 id="matrix-title">All 24 tests</h3>
     <ul class="legend" aria-label="Legend">
-      <li><span class="swatch o-write"></span>Booked, correctly</li>
+      <li><span class="swatch o-write"></span>Refunded, correctly</li>
       <li><span class="swatch o-refuse"></span>Said no, correctly</li>
-      <li><span class="swatch o-blocked"></span>Stopped at the moment of saving</li>
-      <li><span class="swatch o-invalid"></span>Bad booking</li>
-      <li><span class="swatch o-missed"></span>Turned away a worker who was allowed</li>
+      <li><span class="swatch o-blocked"></span>Stopped at the moment of refunding</li>
+      <li><span class="swatch o-invalid"></span>Wrong refund</li>
+      <li><span class="swatch o-missed"></span>Refused a fair refund</li>
     </ul>
     <div class="table-scroll">
       <table class="matrix" id="scenario-matrix" aria-labelledby="matrix-title">
@@ -155,51 +157,51 @@
             <th scope="col"><span class="approach-tag">A</span>Trust memory</th>
             <th scope="col"><span class="approach-tag">B</span>Check, by choice</th>
             <th scope="col"><span class="approach-tag">C</span>Check, required</th>
-            <th scope="col"><span class="approach-tag">D</span>Check while saving</th>
+            <th scope="col"><span class="approach-tag">D</span>Check while refunding</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">1. Nothing changed<small>Memory: allowed. Truth: allowed.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Booked</b><span>memory said yes</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Booked</b><span>check said yes</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Booked</b><span>check said yes</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Booked</b><span>both checks said yes</span></span></td>
+            <th scope="row">1. Nothing changed<small>Memory: refundable. Truth: refundable.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Refunded</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Refunded</b><span>both checks said yes</span></span></td>
           </tr>
           <tr>
-            <th scope="row">2. Memory wrongly says yes<small>Memory: allowed. Truth: not allowed.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Bad booking</b><span>memory said yes</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
+            <th scope="row">2. Memory wrongly says yes<small>Memory: refundable. Truth: already refunded.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
           </tr>
           <tr>
-            <th scope="row">3. Memory wrongly says no<small>Memory: not allowed. Truth: allowed.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-missed" data-scenario="stale_false" data-approach="A" data-recommended="false" data-committed="false"><b>Turned away</b><span>memory said no</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Booked</b><span>check said yes</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Booked</b><span>check said yes</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Booked</b><span>both checks said yes</span></span></td>
+            <th scope="row">3. Memory wrongly says no<small>Memory: not refundable. Truth: refundable.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-missed" data-scenario="stale_false" data-approach="A" data-recommended="false" data-committed="false"><b>Refused</b><span>memory said no</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Refunded</b><span>both checks said yes</span></span></td>
           </tr>
           <tr>
-            <th scope="row">4. Worker no longer exists<small>Memory: allowed. Truth: no such worker.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Bad booking</b><span>memory said yes</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found no one</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found no one</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found no one</span></span></td>
+            <th scope="row">4. The order no longer exists<small>Memory: refundable. Truth: no such order.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
           </tr>
           <tr>
-            <th scope="row">5. The check breaks<small>Memory: allowed. Truth: allowed. The lookup fails.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Booked</b><span>memory said yes</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Turned away</b><span>check failed, so no</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Turned away</b><span>check failed, so no</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Turned away</b><span>check failed, so no</span></span></td>
+            <th scope="row">5. The check breaks<small>Memory: refundable. Truth: refundable. The lookup fails.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Refunded</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
           </tr>
           <tr>
-            <th scope="row">6. Changes right after the check<small>Memory: allowed. Truth: allowed, then not.</small></th>
-            <td data-label="A · Trust memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Bad booking</b><span>memory said yes</span></span></td>
-            <td data-label="B · Check, by choice"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Bad booking</b><span>check was out of date</span></span></td>
-            <td data-label="C · Check, required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Bad booking</b><span>check was out of date</span></span></td>
-            <td data-label="D · Check while saving"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped at save</b><span>second check said no</span></span></td>
+            <th scope="row">6. Someone refunds it right after the check<small>Memory: refundable. Truth: refundable, then already refunded.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>check was out of date</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>check was out of date</span></span></td>
+            <td data-label="D &middot; Check while refunding"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
           </tr>
         </tbody>
       </table>
@@ -208,115 +210,56 @@
   </div>
 
   <div class="callout">
-    <p><strong>The row that matters is 6.</strong> It&rsquo;s the only place where &ldquo;check while saving&rdquo; did better than &ldquo;check first&rdquo;.</p>
+    <p><strong>Row 6 is the one that matters.</strong> It&rsquo;s the only place where &ldquo;check while refunding&rdquo; did better than &ldquo;check first&rdquo;.</p>
   </div>
 </section>
 
 <section id="failure" aria-labelledby="failure-title">
   <h2 id="failure-title">Why checking first wasn&rsquo;t enough</h2>
-  <p class="measure muted">Situation 6 is the one where the answer changes right after the check. Here it is as a comic strip.</p>
+  <p class="measure muted">Situation 6, as a comic strip.</p>
 
   <figure class="comic" aria-labelledby="comic-title">
-    <figcaption class="comic-title" id="comic-title">Sam and the Booking App <span>Situation 6, in five panels</span></figcaption>
+    <figcaption class="comic-title" id="comic-title">The Refund Agent <span>Situation 6, in five panels</span></figcaption>
     <div class="panels">
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 1, </span>9:00:00</p>
-        <p class="bubble"><span class="sr-only">Sam says: </span>I&rsquo;m allowed to work Saturday!</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="Sam stands next to the records, which show a green tick."><g transform="translate(40 50)">
-      <path d="M8 92 Q8 44 25 40 Q42 44 42 92 Z" class="ink fill-shirt"/>
-      <circle cx="25" cy="20" r="14" class="ink fill-panel"/>
-      <path d="M11 17 Q14 4 26 5 Q38 5 39 17 Q32 10 24 12 Q17 12 11 17 Z" class="fill-ink"/>
-      <circle cx="20" cy="19" r="1.8" class="fill-ink"/><circle cx="30" cy="19" r="1.8" class="fill-ink"/>
-      <path d="M19 23 Q25 28 31 23" class="ink"/>
-    </g><g transform="translate(140 70)">
-      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
-      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
-      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
-      <path d="M12 34 L20 42 L33 25" class="ink ok-stroke" style="stroke-width:5"/>
-    </g></svg>
+        <p class="caption-box"><span class="sr-only">Panel 1, </span>Earlier</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>I remember: order #42 can be refunded.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The refund agent holds a memory note that says order 42 is refundable."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">MEMORY</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 2, </span>9:00:01</p>
-        <p class="bubble"><span class="sr-only">The app says: </span>Let me check&hellip; Yes, Sam is allowed.</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The booking app holds a magnifying glass up to the records. They show a green tick."><g transform="translate(30 60) scale(1.0)">
-      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
-      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
-      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
-      <path d="M22 35 Q30 40 38 35" class="ink"/>
-      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
-      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
-    </g><g transform="translate(140 70)">
-      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
-      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
-      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
-      <path d="M12 34 L20 42 L33 25" class="ink ok-stroke" style="stroke-width:5"/>
-    </g><circle cx="120" cy="95" r="14" class="ink fill-none"/><line x1="110" y1="105" x2="98" y2="118" class="ink" style="stroke-width:5"/></svg>
+        <p class="caption-box"><span class="sr-only">Panel 2, </span>Step 1 &middot; The check</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>Let me check&hellip; Yes, still refundable.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent looks at order 42 through a magnifying glass. It shows a green tick."><g transform="translate(25 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><circle cx="118" cy="98" r="14" class="ink fill-none"/><line x1="108" y1="108" x2="96" y2="121" class="ink" style="stroke-width:5"/><g transform="translate(145 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M12 36 L20 44 L33 27" class="ink ok-stroke" style="stroke-width:5"/></g></svg>
       </div>
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 3, </span>9:00:02 &middot; Meanwhile&hellip;</p>
-        <p class="narration">The records change, just after the check.</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The records now show a red cross and a stamp that says not allowed."><g transform="translate(85 60)">
-      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
-      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
-      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
-      <path d="M13 25 L31 43 M31 25 L13 43" class="ink no-stroke" style="stroke-width:5"/>
-    </g><g transform="translate(110 42) rotate(-8)">
-      <rect x="-80" y="-16" width="160" height="32" rx="3" class="stamp-no"/>
-      <text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">NOT ALLOWED</text>
-    </g></svg>
+        <p class="caption-box"><span class="sr-only">Panel 3, </span>Step 2 &middot; Someone else acts</p>
+        <p class="bubble"><span class="sr-only">A teammate says: </span>I just refunded #42 myself.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="A teammate stands by order 42, which now shows a red cross and a stamp saying refunded."><g transform="translate(25 52)"><path d="M8 92 Q8 44 25 40 Q42 44 42 92 Z" class="ink fill-shirt2"/><circle cx="25" cy="20" r="14" class="ink fill-panel"/><path d="M11 17 Q14 4 26 5 Q38 5 39 17 Q32 10 24 12 Q17 12 11 17 Z" class="fill-ink"/><circle cx="20" cy="19" r="1.8" class="fill-ink"/><circle cx="30" cy="19" r="1.8" class="fill-ink"/><path d="M19 23 Q25 28 31 23" class="ink"/></g><g transform="translate(120 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g><g transform="translate(150 62) rotate(-10)"><rect x="-60.0" y="-16" width="120" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">REFUNDED</text></g></svg>
       </div>
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 4, </span>9:00:03</p>
-        <p class="bubble"><span class="sr-only">The app says: </span>I already checked. Saving the booking!</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app happily holds up its old note with a green tick."><g transform="translate(40 60) scale(1.0)">
-      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
-      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
-      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
-      <path d="M22 35 Q30 40 38 35" class="ink"/>
-      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
-      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
-    </g><g transform="translate(120 70)"><rect x="0" y="0" width="56" height="40" rx="3" class="ink fill-note"/><path d="M14 20 L24 30 L42 10" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
+        <p class="caption-box"><span class="sr-only">Panel 4, </span>Step 3</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>I already checked. Sending the refund!</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent holds up its old note that still says yes."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">OLD ANSWER</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel panel-split">
-        <p class="caption-box"><span class="sr-only">Panel 5, </span>9:00:03 &middot; Two endings</p>
+        <p class="caption-box"><span class="sr-only">Panel 5, </span>Two endings</p>
         <div class="split">
           <div class="half o-invalid">
-            <p class="half-label">Methods B and C</p>
-            <p class="bubble"><span class="sr-only">The app says: </span>Booked!</p>
-            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app books Sam. A red stamp says mistake."><g transform="translate(20 60) scale(0.9)">
-      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
-      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
-      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
-      <path d="M22 35 Q30 40 38 35" class="ink"/>
-      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
-      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
-    </g><g transform="translate(140 95) rotate(-10)">
-      <rect x="-58" y="-15" width="116" height="30" rx="3" class="stamp-no"/>
-      <text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">MISTAKE</text>
-    </g></svg>
-            <p class="verdict"><span aria-hidden="true">&#10005;</span> Sam is booked by mistake</p>
+            <p class="half-label">Methods A, B and C</p>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Refund sent!</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent sends the money. A red stamp says paid twice."><g transform="translate(15 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(78 100)"><rect x="0" y="0" width="58" height="32" rx="3" class="ink fill-cash"/><circle cx="29" cy="16" r="9" class="ink"/><text x="29" y="21" class="svg-cash" text-anchor="middle">$</text></g><g transform="translate(140 64) rotate(-10)"><rect x="-73.0" y="-16" width="146" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">PAID TWICE</text></g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10005;</span> The shop pays twice</p>
           </div>
           <div class="half o-blocked">
             <p class="half-label">Method D</p>
-            <p class="bubble"><span class="sr-only">The app says: </span>Checking again as I save&hellip; Not allowed.</p>
-            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The app looks at the records again while saving and sees the red cross."><g transform="translate(20 60) scale(0.9)">
-      <line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/>
-      <rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/>
-      <circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/>
-      <path d="M22 37 L38 37" class="ink"/>
-      <rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/>
-      <circle cx="30" cy="59" r="5" class="ink fill-accent"/>
-    </g><g transform="translate(140 72)">
-      <rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/>
-      <rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/>
-      <text x="22" y="19" class="svg-label" text-anchor="middle">RECORDS</text>
-      <path d="M13 25 L31 43 M31 25 L13 43" class="ink no-stroke" style="stroke-width:5"/>
-    </g></svg>
-            <p class="verdict"><span aria-hidden="true">&#10003;</span> Nothing is saved</p>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Checking again as I refund&hellip; Already refunded. Nothing sent.</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent checks order 42 again while refunding and sees the red cross."><g transform="translate(20 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 37 L38 37" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(140 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10003;</span> No money goes out</p>
           </div>
         </div>
       </div>
     </div>
+    <p class="comic-note">In the test, step 2 is slotted in on purpose, one step after another. There was no real AI and no real teammate: a simple rule plays the agent.</p>
   </figure>
 
   <details class="eng">
@@ -328,11 +271,11 @@ INSERT INTO assignments (shift, worker)
 SELECT 'toy-shift', id FROM workers
 WHERE id = 'toy-worker' AND eligible = 1;
 COMMIT;</code></pre>
-      <p>The caveat: the change in step 3 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at save time catches the change. It does not test the guard under real concurrency. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already booked?&rdquo; check and the insert one unit against other writers.</p>
+      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
     </div>
   </details>
   <details class="eng">
-    <summary>For engineers: recorded trace, situation 6, method C <span class="muted">(bad booking)</span></summary>
+    <summary>For engineers: recorded trace, situation 6, method C <span class="muted">(wrong refund)</span></summary>
 <pre tabindex="0" data-trace="eligibility_flip/C"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "eligible": true, "reason": "eligible"},
@@ -344,7 +287,7 @@ COMMIT;</code></pre>
 ]</code></pre>
   </details>
   <details class="eng">
-    <summary>For engineers: recorded trace, situation 6, method D <span class="muted">(stopped at save)</span></summary>
+    <summary>For engineers: recorded trace, situation 6, method D <span class="muted">(stopped)</span></summary>
 <pre tabindex="0" data-trace="eligibility_flip/D"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "eligible": true, "reason": "eligible"},
@@ -360,9 +303,9 @@ COMMIT;</code></pre>
 <section id="learned" aria-labelledby="learned-title">
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
-    <p>A check can be right and still be too early. The safest place to check is the moment you save.</p>
-    <p>Safety and usefulness are different things. Method D stopped the bad booking, but it didn&rsquo;t book any more of the right workers. If I had only measured one number, I would have missed that.</p>
-    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so an allowed worker was turned away. For bookings that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
+    <p>A check can be right and still be too early. The safest place to check is the moment you act.</p>
+    <p>Safety and usefulness are different things. Method D stopped the wrong refund, but it didn&rsquo;t give any more of the fair refunds. If I had only measured one number, I would have missed that.</p>
+    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so a customer who deserved a refund didn&rsquo;t get one. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
   </div>
 </section>
 
@@ -370,10 +313,11 @@ COMMIT;</code></pre>
   <h2 id="open-title">What I don&rsquo;t know yet</h2>
   <div class="prose measure">
     <ul>
-      <li>Is it the special save that helps, or just checking late? In this test, checking again just before saving would have worked too. To find out, I&rsquo;d need two things happening at the same time, for real.</li>
+      <li>Is it the special refund step that helps, or just checking late? In this test, checking again just before refunding would have worked too. To find out, I&rsquo;d need two things happening at the same time, for real.</li>
       <li>Would this hold on other databases? On Postgres, the same trick can still fail unless you add a lock. I haven&rsquo;t tested that.</li>
-      <li>What if Sam stops being allowed <em>after</em> the booking is saved? Method D doesn&rsquo;t handle that.</li>
-      <li>What should an AI assistant do when it gets &ldquo;not allowed&rdquo;? Try again, pick someone else, or ask a person?</li>
+      <li>What if the order changes after the refund is sent? Method D doesn&rsquo;t handle that.</li>
+      <li>What should the agent do when it hears &ldquo;already refunded&rdquo;? Tell the customer, check again later, or ask a person?</li>
+      <li>What would a real AI model do in the agent&rsquo;s place? That&rsquo;s a good next experiment.</li>
     </ul>
   </div>
 </section>
@@ -382,10 +326,10 @@ COMMIT;</code></pre>
   <h2 id="limitations-title">What this test is not</h2>
   <div class="prose measure">
     <ul>
-      <li>No AI model was used. A simple fixed rule plays the part of the AI.</li>
-      <li>It&rsquo;s small: 6 made-up situations, one worker, one shift.</li>
-      <li>Nothing happens at the same time. The change in situation 6 is slotted in on purpose, one step after another.</li>
-      <li>It&rsquo;s not a copy of the MemRiskBench study and doesn&rsquo;t repeat its results.</li>
+      <li>No AI model was used. A simple fixed rule plays the part of the agent.</li>
+      <li>It&rsquo;s small: 6 made-up situations and one yes/no rule.</li>
+      <li>Nothing happens at the same time. The change in situation 6 is slotted in on purpose.</li>
+      <li>The paper doesn&rsquo;t test this timing gap. This is my own extension, not a copy of the MemRiskBench study.</li>
     </ul>
   </div>
 </section>
@@ -403,10 +347,10 @@ python3 experiments/001-memory-reliability/experiment.py --output my-run.json</c
     <summary>For engineers: how each number is counted, and all the files</summary>
     <div class="measure">
       <ul>
-        <li><strong>Bad bookings</strong> (invalid commits): a booking saved while the worker wasn&rsquo;t allowed at save time. Out of all 6.</li>
-        <li><strong>Wrong &ldquo;yes&rdquo; decisions</strong>: the method decided to book when the worker wasn&rsquo;t allowed at decision time. Out of all 6.</li>
-        <li><strong>Right workers booked</strong>: allowed at save time, and booked. Out of the 3 situations where the worker was allowed (1, 3 and 5).</li>
-        <li><strong>Right workers turned away</strong>: allowed at save time, but refused. Out of the same 3.</li>
+        <li><strong>Wrong refunds</strong> (invalid commits): an action saved when it wasn&rsquo;t allowed at that moment. Out of all 6.</li>
+        <li><strong>Wrong &ldquo;yes&rdquo; decisions</strong>: the method decided to act when it wasn&rsquo;t allowed at decision time. Out of all 6.</li>
+        <li><strong>Fair refunds given</strong>: allowed at save time, and done. Out of the 3 situations where it was allowed (1, 3 and 5).</li>
+        <li><strong>Fair refunds refused</strong>: allowed at save time, but refused. Out of the same 3.</li>
       </ul>
       <p>Full definitions are in the <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">methodology</a>.</p>
     </div>
