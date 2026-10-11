@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Thinking Lab · Research. Experiments. Evidence.</title>
-<meta name="description" content="I read AI research, test one idea from it with a small experiment, and explain what I found in plain words, including what didn't work.">
+<meta name="description" content="A habit of turning AI research into small experiments: read a paper, ask one question, test it, and share what happened, with the code and results in public.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -15,12 +15,12 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="AI Thinking Lab">
 <meta property="og:title" content="AI Thinking Lab · Research. Experiments. Evidence.">
-<meta property="og:description" content="I read AI research, test one idea from it with a small experiment, and explain what I found in plain words, including what didn't work.">
+<meta property="og:description" content="A habit of turning AI research into small experiments: read a paper, ask one question, test it, and share what happened.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-home.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="AI Thinking Lab: Research. Experiments. Evidence.">
+<meta property="og:image:alt" content="AI Thinking Lab: read a paper, ask one question, test it, share what happened.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -31,9 +31,10 @@
     <div class="mast-top">
       <p class="ear">Research. Experiments. Evidence.</p>
       <h1 class="mast-title">AI Thinking Lab</h1>
-      <p class="ear ear-right"><span>September 2026</span></p>
+      <p class="ear ear-right"><span>Since September 2026</span></p>
     </div>
     <nav class="mast-nav" aria-label="Site">
+      <a href="#habit">The habit</a>
       <a href="#experiments">Experiments</a>
       <a href="#about">About</a>
       <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a>
@@ -43,81 +44,61 @@
 
 <main id="main" class="wrap">
 
-<p class="standfirst">Small experiments on how AI agents act on outdated information, and what stops them. <strong>So far:</strong> checking first isn&rsquo;t enough, and neither is a quick re-check. The check and the action have to be one locked step.</p>
+<section class="front-lead" aria-labelledby="lead-title">
+  <h2 id="lead-title" class="banner">Read a paper. Ask one question. Test it.</h2>
+  <p class="deck">AI Thinking Lab is a habit I&rsquo;m building: turning AI research into small experiments, one at a time, and sharing what actually happened, including what didn&rsquo;t work.</p>
+</section>
 
-<section class="front-lead" aria-labelledby="featured-title">
-  <p class="section-label">Lead story &middot; Experiment 001</p>
-  <h2 id="featured-title" class="banner"><a href="experiments/001-memory-reliability/">Checking first wasn&rsquo;t enough</a></h2>
-  <p class="deck">An AI refund agent checked an order. Someone refunded it a moment later. The agent refunded it again.</p>
-  <div class="featured">
-    <div class="lead-text">
-      <p class="dropcap">Checking first, even when it was required, still let 1 of 6 wrong refunds through. Doing the check inside the refund step stopped all of them.</p>
-      <p>A tougher follow-up, with the change really happening at the same moment, showed that a quick re-check just before refunding still failed about 1 time in 6. Only a check and refund done as one locked step held up.</p>
-      <p>What didn&rsquo;t improve: every method still turned away one customer who deserved a refund.</p>
-      <p class="small muted">A small test of the safety net around an AI agent. A simple rule plays the agent.</p>
-      <div class="actions">
-        <a href="experiments/001-memory-reliability/">Read the full story, with a comic strip &rarr;</a>
-        <a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code and tests</a>
-      </div>
-    </div>
-    <div class="result-strip">
-      <h3>The numbers</h3>
-      <table id="home-results">
-        <thead>
-          <tr><th scope="col">Method</th><th scope="col">Wrong refunds<span class="dir">out of 6</span></th><th scope="col">Fair refunds given<span class="dir">out of 3</span></th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th>
-            <td><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3</span></span></td>
-            <td><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th>
-            <td><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1</span></span></td>
-            <td><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th>
-            <td><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1</span></span></td>
-            <td><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-          <tr><th scope="row"><span class="approach-tag">D</span>Check while refunding</th>
-            <td><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0</span></span></td>
-            <td><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="value">2/3</span></span></td></tr>
-        </tbody>
-      </table>
-      <p class="result-caption">Fewer wrong refunds is better.</p>
-    </div>
-  </div>
+<section id="habit" aria-labelledby="habit-title">
+  <h2 id="habit-title" class="section-head">The habit</h2>
+  <ol class="habit">
+    <li><b>Read</b>Pick a research paper about AI and read it properly.</li>
+    <li><b>Ask</b>Find one small question from it that I can actually test.</li>
+    <li><b>Test</b>Build the smallest experiment that can answer it, and write down what I expect first.</li>
+    <li><b>Share</b>Publish the code, the raw results, and what the test does and doesn&rsquo;t show.</li>
+  </ol>
 </section>
 
 <section id="experiments" aria-labelledby="experiments-title">
-  <h2 id="experiments-title" class="section-head">All experiments</h2>
+  <h2 id="experiments-title" class="section-head">The log</h2>
   <div class="table-scroll">
-    <table class="index-table">
+    <table class="index-table log-table">
       <thead>
-        <tr><th scope="col">No.</th><th scope="col">Experiment</th><th scope="col">The question</th><th scope="col">Status</th><th scope="col">Links</th></tr>
+        <tr><th scope="col">No.</th><th scope="col">Experiment</th><th scope="col">What I found</th><th scope="col">Links</th></tr>
       </thead>
       <tbody>
         <tr>
           <td class="num">001</td>
-          <td><a href="experiments/001-memory-reliability/"><strong>Acting on old information</strong></a><br><span class="small muted">Python and SQLite, 8 tests</span></td>
-          <td class="q">If an AI agent checks before it acts, can the answer still be out of date by the time it acts?</td>
-          <td><span class="status">Done<br><span class="muted">Sep 2026</span></span></td>
-          <td class="small"><a href="experiments/001-memory-reliability/">Results</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code</a></td>
+          <td><a href="experiments/001-memory-reliability/"><strong>Checking first wasn&rsquo;t enough</strong></a><br><span class="small muted">From the MemRiskBench paper &middot; Sep 2026</span></td>
+          <td class="q">An AI refund agent checked an order, someone refunded it a moment later, and the refund went out twice. Checking inside the refund step stopped it.</td>
+          <td class="small"><a href="experiments/001-memory-reliability/">Read</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code</a></td>
         </tr>
         <tr>
           <td class="num">001b</td>
-          <td><a href="experiments/001-memory-reliability/#followup"><strong>The same test, under real timing</strong></a><br><span class="small muted">Python and SQLite, 13 tests</span></td>
-          <td class="q">Is a quick re-check enough, or must the check and the action be one locked step?</td>
-          <td><span class="status">Done<br><span class="muted">Oct 2026</span></span></td>
-          <td class="small"><a href="experiments/001-memory-reliability/#followup">Results</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001b-concurrent-guard">Code</a></td>
+          <td><a href="experiments/001-memory-reliability/#followup"><strong>The same test, under real timing</strong></a><br><span class="small muted">Follow-up to 001 &middot; Oct 2026</span></td>
+          <td class="q">A quick re-check just before acting still failed about 1 time in 6. Only a check and action done as one locked step held up.</td>
+          <td class="small"><a href="experiments/001-memory-reliability/#followup">Read</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001b-concurrent-guard">Code</a></td>
         </tr>
       </tbody>
     </table>
   </div>
-  
+  <p class="small muted">Each entry is small, uses made-up data, and states its limits. New entries are added when they have code, results and a write-up.</p>
+</section>
+
+<section id="lessons" aria-labelledby="lessons-title">
+  <h2 id="lessons-title" class="section-head">Lessons so far</h2>
+  <div class="prose measure">
+    <ul>
+      <li>A check can go out of date before you act on it. The check and the action need to happen as one locked step. <span class="muted">(001, 001b)</span></li>
+      <li>Measure safety and usefulness separately. A safer method can still turn away the people it should help. <span class="muted">(001)</span></li>
+    </ul>
+  </div>
 </section>
 
 <section id="about" aria-labelledby="about-title">
   <h2 id="about-title" class="section-head">About</h2>
   <div class="prose measure">
-    <p>I&rsquo;m interested in where AI agents go wrong in ordinary ways: acting on old information, or doing something a moment after it stopped being allowed. Each experiment starts from a research paper, tests one idea, and puts the code, the raw results and the limits on GitHub.</p>
+    <p>I&rsquo;m doing this to understand AI systems by testing ideas myself instead of only reading about them. I&rsquo;m most interested in where AI agents go wrong in ordinary software ways, like acting on old information.</p>
     <p>Built with help from AI tools (ChatGPT, OpenAI Codex, Claude Code). I choose the questions and check the results.</p>
   </div>
 </section>

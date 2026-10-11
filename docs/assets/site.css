@@ -558,3 +558,23 @@ main > section.glimpse > h2 { font-size: 17px; border-top: 0; padding-top: 10px;
 .result-caption { font-size: 15.5px; color: var(--ink-2); margin: 10px 0 0; }
 
 h1, h2, .banner, .mast-title, caption { font-variant-numeric: lining-nums; }
+
+/* Homepage: the habit, as four newspaper columns */
+.front-lead .deck { max-width: 48rem; }
+.habit { list-style: none; counter-reset: h; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.habit li { counter-increment: h; padding: 4px 22px 6px; border-left: 1px solid var(--line); font-size: 18px; line-height: 1.5; color: var(--ink-2); }
+.habit li:first-child { border-left: 0; padding-left: 0; }
+.habit li::before { content: counter(h); display: block; font: 900 44px/1 var(--head); color: var(--bad); margin-bottom: 6px; font-variant-numeric: lining-nums; }
+.habit b { display: block; font: 900 24px/1.2 var(--head); color: var(--ink); margin-bottom: 4px; }
+.log-table td.q { max-width: 34rem; }
+@media (max-width: 860px) {
+  .habit { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
+  .habit li:nth-child(3) { border-left: 0; padding-left: 0; }
+}
+@media (max-width: 560px) {
+  .habit { grid-template-columns: 1fr; }
+  .habit li { border-left: 0; padding: 12px 0; border-top: 1px solid var(--line); }
+  .habit li:first-child { border-top: 0; }
+}
+
+#main > .front-lead:first-child { margin-top: 36px; }
