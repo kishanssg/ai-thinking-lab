@@ -48,19 +48,17 @@
   <p class="section-label">Experiment 001</p>
   <h1>Looking it up first wasn&rsquo;t enough</h1>
   <p class="deck">An AI agent looked up the right answer and still made the wrong move. A small experiment about stale memory, a split-second gap, and what closes it.</p>
-  <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 8-minute read (At a glance takes one)</p>
+  <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
   <h2 id="glimpse-title">At a glance</h2>
   <dl class="glimpse-list">
     <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent looked up the customer&rsquo;s record. The agent saved the credit anyway.</dd></div>
-    <div><dt>What I tried</dt><dd>Four approaches, from &ldquo;trust memory&rdquo; to &ldquo;the database confirms the approval at the moment it saves the credit&rdquo;. Each one ran through the same 6 situations.</dd></div>
-    <div><dt>What worked</dt><dd>Only the approach where the database confirms the approval at the moment of saving stopped the wrong credit. Looking the record up a moment earlier still let the wrong credit through.</dd></div>
-    <div><dt>Stress test</dt><dd>When the cancellation lands within milliseconds of the save, a second lookup just before saving still let the wrong credit through in about 1 of 6 tries. A lookup and save done as one locked step let none through.</dd></div>
-    <div><dt>The catch</dt><dd>No approach was better at giving customers the credits they really were owed.</dd></div>
+    <div><dt>What worked</dt><dd>Only one approach stopped the wrong credit: the database confirms the approval at the moment it saves the credit. Looking the record up a moment earlier didn&rsquo;t.</dd></div>
+    <div><dt>Stress test</dt><dd>With the cancellation landing within milliseconds of the save, a second lookup just before saving still let the wrong credit through in about 1 of 6 tries. A lookup and save done as one locked step let none through.</dd></div>
     <div><dt>The lesson</dt><dd>Treat an AI agent&rsquo;s memory as a hint, not the truth, and let the system confirm the rule at the moment it saves the change.</dd></div>
-    <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the test is small.</dd></div>
+    <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent.</dd></div>
   </dl>
 </section>
 <p class="for-engineers-below">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the final lookup and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a Part 2 stress test with 9,000 tries per approach.</p>
@@ -68,12 +66,17 @@
 <section id="story" aria-labelledby="story-title">
   <h2 id="story-title">The story</h2>
   <div class="prose measure">
-    <p>Imagine an AI agent that helps with customer support. Earlier today a $20 goodwill credit was approved for customer #42, and the agent remembers that.</p>
-    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it looks up the customer&rsquo;s record first, it sees the cancellation and says no.</p>
-    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent looks up the record and <em>before</em> it saves the credit? The lookup said &ldquo;approved&rdquo;, and it was right at that moment. The credit still gets saved. That gap is what this experiment is about.</p>
-    <p>Why store credit and not a refund? Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
-    <p>Why I care: AI agents are starting to remember things and then act with real tools, like issuing credits. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
+    <p>Imagine an AI support agent. Earlier today, customer #42 was approved for a $20 goodwill credit, and the agent remembers that.</p>
+    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it saves a credit the customer is no longer owed. If it looks up the record first, it sees the cancellation and says no.</p>
+    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent looks up the record and <em>before</em> it saves the credit? The lookup was right at that moment, and the credit still gets saved. That gap is what this experiment is about.</p>
   </div>
+  <details class="eng">
+    <summary>Why store credit, and where the idea came from</summary>
+    <div class="prose measure">
+      <p>Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
+      <p>The idea came from <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
+    </div>
+  </details>
 </section>
 
 <section id="experiment" aria-labelledby="experiment-title">
@@ -148,11 +151,12 @@
       </tbody>
     </table>
   </div>
-  <p class="figure-note"><strong>Wrong decisions vs wrong credits:</strong> a wrong decision means the approach decided to give the credit when it wasn&rsquo;t approved at that moment. B and C never decided wrong, yet still saved one wrong credit, because the approval was cancelled <em>after</em> they decided. B and C score the same because B always chooses to look up the record, so C&rsquo;s extra rule never gets a chance to matter.</p>
+  <p class="figure-note"><strong>Wrong decisions vs wrong credits:</strong> B and C never decided wrong, yet each saved one wrong credit, because the approval was cancelled <em>after</em> they decided.</p>
 
-  <div class="figure">
-    <h3 id="matrix-title">All 24 tests</h3>
-    <p class="figure-lead">Look at situation 6, the highlighted row: it&rsquo;s the only one where &ldquo;look up while saving&rdquo; did better than &ldquo;look up first&rdquo;.</p>
+  <p class="figure-lead" style="margin-top:22px">The whole difference comes from situation 6, the approval cancelled right after the lookup. The comic below walks through it.</p>
+  <details class="eng grid-details">
+    <summary id="matrix-title">See all 24 tests, situation by situation</summary>
+  <div class="figure">    <p class="figure-lead">Look at situation 6, the highlighted row: it&rsquo;s the only one where &ldquo;look up while saving&rdquo; did better than &ldquo;look up first&rdquo;.</p>
     <ul class="legend" aria-label="Legend">
       <li><span class="swatch o-write"></span>Credit saved, correctly</li>
       <li><span class="swatch o-refuse"></span>Said no, correctly</li>
@@ -219,6 +223,7 @@
     </div>
     <p class="figure-note">Each box is one recorded test. The raw records are in <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/results.json">results.json</a>. Situation 4 is a bit artificial: a real system would reject a closed account. The test removes that safeguard on purpose, to see what memory alone does.</p>
   </div>
+  </details>
 
 </section>
 
@@ -271,7 +276,7 @@
   </figure>
 
   <details class="eng">
-    <summary>For engineers: the SQL, and an honest caveat</summary>
+    <summary>For engineers: the SQL, an honest caveat, and the recorded traces</summary>
     <div class="measure">
       <p>B and C run an unguarded insert. D runs a conditional insert inside a write transaction (abridged from <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py#L53-L74"><code>Store.commit</code></a>):</p>
 <pre tabindex="0"><code>BEGIN IMMEDIATE;
@@ -281,9 +286,7 @@ WHERE id = 'customer-42' AND approved = 1;
 COMMIT;</code></pre>
       <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that looking up the record at write time catches the change. It does not test the guard under real concurrency; <a href="#part-2">Part 2</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already credited?&rdquo; lookup and the insert one unit against other writers.</p>
     </div>
-  </details>
-  <details class="eng">
-    <summary>For engineers: recorded trace, situation 6, approach C <span class="muted">(wrong credit)</span></summary>
+    <p class="measure small"><strong>Recorded trace, situation 6, approach C</strong> (wrong credit):</p>
 <pre tabindex="0" data-trace="approval_cancelled/C"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "approved": true, "reason": "approved"},
@@ -293,9 +296,7 @@ COMMIT;</code></pre>
   {"kind": "commit_attempt", "committed": true, "guarded": false, "reason": "credited", "ground_truth": false},
   {"kind": "final", "credit_count": 1}
 ]</code></pre>
-  </details>
-  <details class="eng">
-    <summary>For engineers: recorded trace, situation 6, approach D <span class="muted">(stopped)</span></summary>
+    <p class="measure small"><strong>Recorded trace, situation 6, approach D</strong> (stopped in time):</p>
 <pre tabindex="0" data-trace="approval_cancelled/D"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "approved": true, "reason": "approved"},
@@ -311,7 +312,7 @@ COMMIT;</code></pre>
 <section id="part-2" aria-labelledby="part2-title">
   <h2 id="part2-title">Part 2: a real stress test</h2>
   <div class="prose measure">
-    <p>The test above couldn&rsquo;t tell whether approach D&rsquo;s special save command mattered, or whether any second lookup just before saving would do as well. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of the save, 3,000 times per approach, three runs.</p>
+    <p>Part 1 couldn&rsquo;t tell whether a second lookup just before saving would be enough. So I made the manager&rsquo;s cancellation really race the agent, landing within milliseconds of the save, 9,000 times per approach.</p>
   </div>
   <div class="table-scroll">
     <table class="compare simple part2-table">
@@ -326,17 +327,17 @@ COMMIT;</code></pre>
     </table>
   </div>
   <div class="prose measure">
-    <p><strong>A quick second lookup isn&rsquo;t enough.</strong> What works is making the final lookup and the save one locked step, so nothing can change in between. F and D both score 0 for the same reason: the final lookup happens while the record is locked. F does the lookup and the save as two commands inside the lock; D does them as one command. So the lock is what matters, not the special command. (In SQLite, a write transaction is that lock; Postgres would need an explicit row lock.)</p>
+    <p><strong>A second lookup isn&rsquo;t enough.</strong> F and D both scored 0 because their final lookup happens while the record is locked, so nothing can change before the save. (In SQLite a write transaction is that lock; Postgres would need an explicit row lock.)</p>
   </div>
-  <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/part-2-stress-test/README.md">Code, method and full results</a>.</p>
+  <p class="measure small muted">One laptop, SQLite only; the rates vary between runs, and zero is an observation, not a proof. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/part-2-stress-test/README.md">Code, method and full results</a>.</p>
 </section>
 
 <section id="learned" aria-labelledby="learned-title">
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
-    <p><strong>1. An AI agent&rsquo;s memory is a hint, not the truth.</strong> Anything it remembers from earlier (an approval, a permission, an address) may have changed since. Trusting memory caused 3 wrong credits out of 6. Before acting, the agent should fetch the live answer from the real system.</p>
-    <p><strong>2. Even a fresh answer can go out of date before the agent acts.</strong> Looking the record up first still let 1 wrong credit through. So the system that saves the change should confirm the rule itself at that exact moment, and lock the record until the save is done. It&rsquo;s like a shop confirming your coupon at the till, not when you walked in the door.</p>
-    <p><strong>3. Safer doesn&rsquo;t mean more helpful.</strong> The safest approach stopped every wrong credit, but it still turned away a customer who was owed one, just like the other approaches. When the lookup itself failed, it said no to be safe. That&rsquo;s probably the right call with money, but it&rsquo;s still a cost, and I only noticed it because I counted wrong credits and missed credits separately.</p>
+    <p><strong>1. An AI agent&rsquo;s memory is a hint, not the truth.</strong> Anything it remembers from earlier may have changed. Trusting memory caused 3 wrong credits out of 6, so the agent should fetch the live answer before acting.</p>
+    <p><strong>2. Even a fresh answer can go out of date.</strong> Looking the record up first still let 1 wrong credit through. The system that saves the change should confirm the rule at that moment and lock the record, like a shop confirming your coupon at the till, not at the door.</p>
+    <p><strong>3. Safer doesn&rsquo;t mean more helpful.</strong> Every approach still turned away one customer who was owed a credit. When the lookup failed, the careful approaches said no to be safe.</p>
   </div>
 </section>
 
@@ -344,11 +345,9 @@ COMMIT;</code></pre>
   <h2 id="open-title">What I don&rsquo;t know yet</h2>
   <div class="prose measure">
     <ul>
-      <li>Would this hold on other databases? On Postgres, the same approach can still fail unless the record is explicitly locked. I haven&rsquo;t tested that.</li>
-      <li>What if the record changes after the credit is saved? Approach D doesn&rsquo;t handle that.</li>
-      <li>What should the agent do when it hears &ldquo;cancelled&rdquo;? Tell the customer, look up the record again later, or ask a person?</li>
-      <li>What happens when the agent&rsquo;s memory carries over between separate conversations, days apart? This test only had one memory from &ldquo;earlier today&rdquo;.</li>
-      <li>What would a real AI model do in the agent&rsquo;s place? That&rsquo;s a good next experiment.</li>
+      <li>What happens when the agent&rsquo;s memory carries over between separate conversations, days apart?</li>
+      <li>What would a real AI model do in the agent&rsquo;s place?</li>
+      <li>Does this hold on other databases? On Postgres, the same approach can fail unless the record is explicitly locked.</li>
     </ul>
   </div>
 </section>
@@ -357,9 +356,8 @@ COMMIT;</code></pre>
   <h2 id="limitations-title">What this test is not</h2>
   <div class="prose measure">
     <ul>
-      <li>No AI model was used. A simple fixed rule plays the part of the agent.</li>
+      <li>No AI model was used. A simple fixed rule plays the agent.</li>
       <li>It&rsquo;s small: 6 made-up situations and one yes/no rule.</li>
-      <li>In this test nothing happens at the same time; the change in situation 6 is slotted in on purpose. Part 2 covers real timing, on one laptop and SQLite only.</li>
       <li>It&rsquo;s not a copy of the MemRiskBench study and doesn&rsquo;t repeat its results.</li>
     </ul>
   </div>
@@ -367,13 +365,15 @@ COMMIT;</code></pre>
 
 <section id="reproduce" aria-labelledby="reproduce-title">
   <h2 id="reproduce-title">Try it yourself</h2>
-  <p class="measure">You only need Python 3.13. Nothing to install. On Windows, type <code>python</code> instead of <code>python3</code>.</p>
+  <p class="measure">Everything is on <a href="https://github.com/kishanssg/ai-thinking-lab">GitHub</a>: the code, the tests and the raw results. An automatic check makes sure every number on this page matches them.</p>
+  <details class="eng">
+    <summary>Run it on your computer (Python 3.13, nothing to install)</summary>
 <pre class="measure" tabindex="0" style="max-width:none"><code>git clone https://github.com/kishanssg/ai-thinking-lab.git
 cd ai-thinking-lab
 python3 -m unittest discover -s experiments/001-memory-reliability -p "test_*.py" -v
 python3 experiments/001-memory-reliability/experiment.py --output my-run.json</code></pre>
-  <p class="measure small muted" style="margin-top:12px">You&rsquo;ll get the same results every time. Every number on this page is counted from the saved test records, and an automatic check makes sure the page matches them.</p>
-
+    <p class="measure small muted" style="margin-top:12px">On Windows, type <code>python</code> instead of <code>python3</code>. You&rsquo;ll get the same results every time.</p>
+  </details>
   <details class="eng">
     <summary>For engineers: how each number is counted, and all the files</summary>
     <div class="measure">
