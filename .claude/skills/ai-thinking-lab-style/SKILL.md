@@ -22,7 +22,8 @@ AI Thinking Lab is a habit: **read a paper, ask one question, test it, share wha
 - Use everyday words in the main text ("wrong credit", "check while giving"); put technical terms once near the top for engineers ("TOCTOU", "write transaction") and in "For engineers" sections that open on click.
 - Say what didn't work, as plainly as what did.
 - State the condition behind every number ("within a few milliseconds, on one laptop, SQLite").
-- Give every number its denominator ("1 of 6", "1,472 of 9,000").
+- Give every number its denominator ("1 of 6", "1,611 of 9,000").
+- Never use a vague action word on its own. Say who does what to which thing: not "check first" but "the agent looks up the customer's record first"; not "the check and the action" but "the final lookup and the save". Experiment 001's words: **look up** (read the record to see if the credit is still approved), **save** (write the credit to the database), **one locked database step** (nothing can change the record between the lookup and the save). "Check" is fine only for checking results or the automatic site check.
 - Keep the AI-assistance credit to one line: "Built with help from AI tools (ChatGPT, OpenAI Codex, Claude Code). I choose the questions and check the results."
 - Say once, plainly, what kind of test it is: "I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent."
 

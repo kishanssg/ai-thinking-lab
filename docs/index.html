@@ -69,8 +69,8 @@
       <tbody>
         <tr>
           <td class="num">001</td>
-          <td><a href="experiments/001-memory-reliability/"><strong>Checking first wasn&rsquo;t enough</strong></a><br><span class="small muted">From the MemRiskBench paper &middot; Sep 2026</span></td>
-          <td class="q">A manager cancelled a store credit just after an AI support agent checked it, and the agent added it anyway. Even a quick re-check just before acting let some through under real timing; only a check and action done as one locked step stopped them all.</td>
+          <td><a href="experiments/001-memory-reliability/"><strong>Looking it up first wasn&rsquo;t enough</strong></a><br><span class="small muted">From the MemRiskBench paper &middot; Sep 2026</span></td>
+          <td class="q">A manager cancelled a store credit just after an AI support agent looked up the customer&rsquo;s record, and the agent saved it anyway. Even a second lookup right before saving let some through under real timing; only doing the final lookup and the save as one locked database step stopped them all.</td>
           <td class="small"><a href="experiments/001-memory-reliability/">Read</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code</a></td>
         </tr>
       </tbody>
@@ -83,7 +83,7 @@
   <h2 id="lessons-title" class="section-head">Lessons so far</h2>
   <div class="prose measure">
     <ul>
-      <li>A check can go out of date before you act on it. The check and the action need to happen as one locked step. <span class="muted">(001)</span></li>
+      <li>When an AI agent looks something up, the answer can change before it acts. The final lookup and the action need to happen as one locked database step, so nothing can change in between. <span class="muted">(001)</span></li>
       <li>Measure safety and usefulness separately. The safest method gave no more fair credits than the least safe one. <span class="muted">(001)</span></li>
     </ul>
   </div>

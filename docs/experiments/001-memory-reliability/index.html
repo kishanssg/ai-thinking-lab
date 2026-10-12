@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Experiment 001: Checking first wasn&rsquo;t enough &middot; AI Thinking Lab</title>
-<meta name="description" content="A small test of the safety net around an AI support agent: a credit approval is cancelled just after the agent checks it. Checking first still let the wrong credit through; doing the check in the same locked step as giving the credit stopped it.">
+<title>Experiment 001: Looking it up first wasn&rsquo;t enough &middot; AI Thinking Lab</title>
+<meta name="description" content="A small test of the safety net around an AI support agent: a credit approval is cancelled just after the agent checks it. Looking up the customer&rsquo;s record first still let the wrong credit through; doing the final lookup and the save as one locked database step stopped it.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="../../assets/site.css">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="AI Thinking Lab">
-<meta property="og:title" content="Checking first still let a wrong credit through">
-<meta property="og:description" content="An approval was cancelled just after an AI support agent checked it. Checking first still let the credit through; one locked check-and-give step stopped it.">
+<meta property="og:title" content="Looking it up first still let a wrong credit through">
+<meta property="og:description" content="An approval was cancelled just after an AI support agent looked up the customer&rsquo;s record. Looking it up first still let the credit through; doing the final lookup and the save as one locked step stopped it.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-experiment-001.png">
 <meta property="og:image:width" content="1200">
@@ -46,20 +46,20 @@
 
 <div class="intro article-head">
   <p class="section-label">Experiment 001 &middot; Feature</p>
-  <h1>Checking first wasn&rsquo;t enough</h1>
-  <p class="deck">A manager cancelled a store credit just after an AI support agent checked it. The agent added the credit anyway. Checking first wasn&rsquo;t enough; the check and the action had to be one locked step.</p>
+  <h1>Looking it up first wasn&rsquo;t enough</h1>
+  <p class="deck">A manager cancelled a store credit just after an AI support agent looked up the customer&rsquo;s record. The agent saved the credit anyway. What worked: doing the final lookup and the save as one locked database step.</p>
   <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
-  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the check and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a Part 2 stress test with 9,000 tries per method.</p>
+  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the final lookup and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a Part 2 stress test with 9,000 tries per method.</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
   <h2 id="glimpse-title">At a glance</h2>
   <dl class="glimpse-list">
-    <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent checked. The agent added the credit anyway.</dd></div>
+    <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent looked up the customer&rsquo;s record. The agent saved the credit anyway.</dd></div>
     <div><dt>What I tried</dt><dd>Four ways to stop that, each tested in the same 6 situations.</dd></div>
-    <div><dt>What worked</dt><dd>In the one situation built to test this timing, checking first let the wrong credit through. Doing the check <em>inside</em> the step that adds the credit stopped it.</dd></div>
-    <div><dt>Part 2</dt><dd>A stress test with the cancellation landing within a few milliseconds: a separate re-check just before adding the credit still let it through in about 1 of 6 tries. A locked check-and-add step let none through.</dd></div>
-    <div><dt>The catch</dt><dd>No method gave more of the credits customers were really owed. Trust memory refused one because its memory was wrong; the three checking methods each refused one because the check broke.</dd></div>
+    <div><dt>What worked</dt><dd>In the one situation built to test this timing, looking up the record first let the wrong credit through. Looking it up again <em>inside</em> the database step that saves the credit stopped it.</dd></div>
+    <div><dt>Part 2</dt><dd>A stress test with the cancellation landing within a few milliseconds: a second lookup just before saving the credit, done as a separate step, still let it through in about 1 of 6 tries. Doing the lookup and the save as one locked database step let none through.</dd></div>
+    <div><dt>The catch</dt><dd>No method gave more of the credits customers were really owed. Trust memory refused one because its memory was wrong; the three methods that look up the record each refused one because the lookup failed.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
 </section>
@@ -68,8 +68,8 @@
   <h2 id="story-title">The story</h2>
   <div class="prose measure">
     <p>Imagine an AI agent that helps with customer support. Earlier today a $20 goodwill credit was approved for customer #42, and the agent remembers that.</p>
-    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it checks the customer&rsquo;s record first, it sees the cancellation and says no. Good.</p>
-    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent checks the record and <em>before</em> it adds the credit? The check said yes, and it was right when it looked. The credit still goes on. That gap is what this experiment is about.</p>
+    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it looks up the customer&rsquo;s record first, it sees the cancellation and says no. Good.</p>
+    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent looks up the record and <em>before</em> it saves the credit? The lookup said &ldquo;approved&rdquo;, and it was right at that moment. The credit still goes on. That gap is what this experiment is about.</p>
     <p>Why store credit and not a refund? Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
     <p>Why I care: AI agents are starting to remember things and then act with real tools, like issuing credits. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
   </div>
@@ -82,14 +82,14 @@
       <caption>Each one adds a bit more safety than the one before</caption>
       <thead><tr><th scope="col">Way</th><th scope="col">What it does</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th><td data-label="What it does">Uses what it remembers. Never checks.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th><td data-label="What it does">Looks up the customer&rsquo;s record before giving the credit. Nothing forces it to.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th><td data-label="What it does">Same as B, but the credit tool won&rsquo;t run unless a check said yes.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">D</span>Check while giving</th><td data-label="What it does">Same as C, and the credit is only added if the customer is still owed it at that exact moment.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th><td data-label="What it does">Uses what it remembers. Never looks anything up.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">B</span>Look up first, by choice</th><td data-label="What it does">Looks up the customer&rsquo;s record before giving the credit. Nothing forces it to.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">C</span>Look up first, required</th><td data-label="What it does">Same as B, but the credit tool won&rsquo;t run unless a lookup said yes.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">D</span>Look up while saving</th><td data-label="What it does">Same as C, and the credit is only added if the customer is still owed it at that exact moment.</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;approval cancelled right after the check&rdquo;. That makes 24 tests.</p>
+  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;approval cancelled right after the lookup&rdquo;. That makes 24 tests.</p>
 </section>
 
 <section id="results" aria-labelledby="results-title">
@@ -116,21 +116,21 @@
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">B</span>Check first, by choice</th>
+          <th scope="row"><span class="approach-tag">B</span>Look up first, by choice</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="B" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">C</span>Check first, required</th>
+          <th scope="row"><span class="approach-tag">C</span>Look up first, required</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="C" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">D</span>Check while giving</th>
+          <th scope="row"><span class="approach-tag">D</span>Look up while saving</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
@@ -139,7 +139,7 @@
       </tbody>
     </table>
   </div>
-  <p class="figure-note">B and C give the same results. That&rsquo;s expected: B always chooses to check, so C&rsquo;s extra rule never gets a chance to matter here.</p>
+  <p class="figure-note">B and C give the same results. That&rsquo;s expected: B always chooses to look up the record, so C&rsquo;s extra rule never gets a chance to matter here.</p>
 
   <div class="figure">
     <h3 id="matrix-title">All 24 tests</h3>
@@ -156,53 +156,53 @@
           <tr>
             <th scope="col">Situation</th>
             <th scope="col"><span class="approach-tag">A</span>Trust memory</th>
-            <th scope="col"><span class="approach-tag">B</span>Check, by choice</th>
-            <th scope="col"><span class="approach-tag">C</span>Check, required</th>
-            <th scope="col"><span class="approach-tag">D</span>Check while giving</th>
+            <th scope="col"><span class="approach-tag">B</span>Look up, by choice</th>
+            <th scope="col"><span class="approach-tag">C</span>Look up, required</th>
+            <th scope="col"><span class="approach-tag">D</span>Look up while saving</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <th scope="row">1. Nothing changed<small>Memory: approved. Truth: approved.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>lookup said yes</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>lookup said yes</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both lookups said yes</span></span></td>
           </tr>
           <tr>
             <th scope="row">2. Memory wrongly says yes<small>Memory: approved. Truth: approval cancelled.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup said no</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup said no</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup said no</span></span></td>
           </tr>
           <tr>
             <th scope="row">3. Memory wrongly says no<small>Memory: not approved. Truth: approved.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-missed" data-scenario="stale_false" data-approach="A" data-recommended="false" data-committed="false"><b>Refused</b><span>memory said no</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>lookup said yes</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>lookup said yes</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both lookups said yes</span></span></td>
           </tr>
           <tr>
             <th scope="row">4. The account was closed<small>Memory: approved. Truth: account closed.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="account_closed" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="account_closed" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="account_closed" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="account_closed" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-refuse" data-scenario="account_closed" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup found no account</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-refuse" data-scenario="account_closed" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup found no account</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-refuse" data-scenario="account_closed" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>lookup found no account</span></span></td>
           </tr>
           <tr>
-            <th scope="row">5. The check breaks<small>Memory: approved. Truth: approved. The lookup fails.</small></th>
+            <th scope="row">5. The lookup fails<small>Memory: approved. Truth: approved. The lookup fails.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>lookup failed, so no</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>lookup failed, so no</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>lookup failed, so no</span></span></td>
           </tr>
           <tr>
-            <th scope="row">6. Approval cancelled right after the check<small>Memory: approved. Truth: approved, then cancelled.</small></th>
+            <th scope="row">6. Approval cancelled right after the lookup<small>Memory: approved. Truth: approved, then cancelled.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-blocked" data-scenario="approval_cancelled" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
+            <td data-label="B &middot; Look up, by choice"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>lookup was out of date</span></span></td>
+            <td data-label="C &middot; Look up, required"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>lookup was out of date</span></span></td>
+            <td data-label="D &middot; Look up while saving"><span class="cell o-blocked" data-scenario="approval_cancelled" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second lookup said no</span></span></td>
           </tr>
         </tbody>
       </table>
@@ -211,12 +211,12 @@
   </div>
 
   <div class="callout">
-    <p><strong>Row 6 is the one that matters.</strong> It&rsquo;s the only place where &ldquo;check while giving&rdquo; did better than &ldquo;check first&rdquo;.</p>
+    <p><strong>Row 6 is the one that matters.</strong> It&rsquo;s the only place where &ldquo;look up while saving&rdquo; did better than &ldquo;look up first&rdquo;.</p>
   </div>
 </section>
 
 <section id="failure" aria-labelledby="failure-title">
-  <h2 id="failure-title">Why checking first wasn&rsquo;t enough</h2>
+  <h2 id="failure-title">Why looking it up first wasn&rsquo;t enough</h2>
   <p class="measure muted">Situation 6, as a comic strip.</p>
 
   <figure class="comic" aria-labelledby="comic-title">
@@ -228,8 +228,8 @@
         <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The support agent holds a memory note that says customer 42 is approved for a credit."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">MEMORY</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 2, </span>Step 1 &middot; The check</p>
-        <p class="bubble"><span class="sr-only">The agent says: </span>Let me check&hellip; Yes, still approved.</p>
+        <p class="caption-box"><span class="sr-only">Panel 2, </span>Step 1 &middot; The lookup</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>Let me look up #42&hellip; Yes, still approved.</p>
         <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent looks up customer 42 through a magnifying glass. It shows a green tick."><g transform="translate(25 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><circle cx="118" cy="98" r="14" class="ink fill-none"/><line x1="108" y1="108" x2="96" y2="121" class="ink" style="stroke-width:5"/><g transform="translate(145 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle" style="font-size:9px">#42</text><path d="M12 36 L20 44 L33 27" class="ink ok-stroke" style="stroke-width:5"/></g></svg>
       </div>
       <div class="panel">
@@ -239,7 +239,7 @@
       </div>
       <div class="panel">
         <p class="caption-box"><span class="sr-only">Panel 4, </span>Step 3</p>
-        <p class="bubble"><span class="sr-only">The agent says: </span>I already checked. Adding the credit!</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>I already looked it up. Saving the credit!</p>
         <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent holds up its old note that still says yes."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">OLD ANSWER</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel panel-split">
@@ -247,15 +247,15 @@
         <div class="split">
           <div class="half o-invalid">
             <p class="half-label">Methods A, B and C</p>
-            <p class="bubble"><span class="sr-only">The agent says: </span>Credit added!</p>
-            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent adds a $20 store credit. A red stamp says not owed."><g transform="translate(15 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(78 100)"><rect x="0" y="0" width="62" height="38" rx="5" class="ink fill-cash"/><text x="31" y="17" class="svg-label" text-anchor="middle">STORE CREDIT</text><text x="31" y="32" class="svg-cash" text-anchor="middle">$20</text></g><g transform="translate(140 64) rotate(-10)"><rect x="-66.0" y="-16" width="132" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">NOT OWED</text></g></svg>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Credit saved!</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent saves a $20 store credit. A red stamp says not owed."><g transform="translate(15 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(78 100)"><rect x="0" y="0" width="62" height="38" rx="5" class="ink fill-cash"/><text x="31" y="17" class="svg-label" text-anchor="middle">STORE CREDIT</text><text x="31" y="32" class="svg-cash" text-anchor="middle">$20</text></g><g transform="translate(140 64) rotate(-10)"><rect x="-66.0" y="-16" width="132" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">NOT OWED</text></g></svg>
             <p class="verdict"><span aria-hidden="true">&#10005;</span> The customer gets $20 they&rsquo;re no longer owed</p>
           </div>
           <div class="half o-blocked">
             <p class="half-label">Method D</p>
-            <p class="bubble"><span class="sr-only">The agent says: </span>Checking again as I add it&hellip; Cancelled. Nothing added.</p>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Looking it up again as I save it&hellip; Cancelled. Nothing saved.</p>
             <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent checks customer 42 again while adding the credit and sees the red cross."><g transform="translate(20 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 37 L38 37" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(140 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle" style="font-size:9px">#42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g></svg>
-            <p class="verdict"><span aria-hidden="true">&#10003;</span> No credit added</p>
+            <p class="verdict"><span aria-hidden="true">&#10003;</span> No credit saved</p>
           </div>
         </div>
       </div>
@@ -272,7 +272,7 @@ INSERT INTO credits (credit_id, customer)
 SELECT 'credit-42', id FROM customers
 WHERE id = 'customer-42' AND approved = 1;
 COMMIT;</code></pre>
-      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency; <a href="#part-2">Part 2</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
+      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that looking up the record at write time catches the change. It does not test the guard under real concurrency; <a href="#part-2">Part 2</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already credited?&rdquo; lookup and the insert one unit against other writers.</p>
     </div>
   </details>
   <details class="eng">
@@ -304,22 +304,22 @@ COMMIT;</code></pre>
 <section id="part-2" aria-labelledby="part2-title">
   <h2 id="part2-title">Part 2: a real stress test</h2>
   <div class="prose measure">
-    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late re-check would do. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per method, three runs.</p>
+    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late second lookup would do. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per method, three runs.</p>
   </div>
   <div class="table-scroll">
     <table class="compare simple part2-table">
       <caption>Wrong credits when the cancellation really races the agent</caption>
       <thead><tr><th scope="col">Method</th><th scope="col">Wrong credits</th><th scope="col">What it does</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Check first, required</th><td><span class="metric" data-exp="part2" data-approach="C" data-value="2617/9000"><span class="value">2,617 of 9,000</span> (29%)</span></td><td class="note">The same as method C above.</td></tr>
-        <tr><th scope="row">Re-check just before giving</th><td><span class="metric" data-exp="part2" data-approach="E" data-value="1611/9000"><span class="value">1,611 of 9,000</span> (18%)</span></td><td class="note">Looks again right before giving the credit, as a separate step.</td></tr>
-        <tr><th scope="row">Check and give as one locked step</th><td><span class="metric" data-exp="part2" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and add the credit inside one write transaction that locks out other changes.</td></tr>
-        <tr><th scope="row">Check while giving (method D)</th><td><span class="metric" data-exp="part2" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded step from above, inside a transaction.</td></tr>
+        <tr><th scope="row">Look up first, required</th><td><span class="metric" data-exp="part2" data-approach="C" data-value="2617/9000"><span class="value">2,617 of 9,000</span> (29%)</span></td><td class="note">The same as method C above.</td></tr>
+        <tr><th scope="row">Look up again just before saving</th><td><span class="metric" data-exp="part2" data-approach="E" data-value="1611/9000"><span class="value">1,611 of 9,000</span> (18%)</span></td><td class="note">Looks up the record again right before saving the credit, as a separate step.</td></tr>
+        <tr><th scope="row">Look up and save as one locked step</th><td><span class="metric" data-exp="part2" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Looks up the record and saves the credit inside one write transaction that locks out other changes.</td></tr>
+        <tr><th scope="row">Look up while saving (method D)</th><td><span class="metric" data-exp="part2" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded step from above, inside a transaction.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="prose measure">
-    <p><strong>A quick re-check isn&rsquo;t enough.</strong> What works is making the check and the action one locked step, so nothing can change in between. In SQLite, a write transaction does that because it locks out other writers. Postgres would need an explicit row lock. The special guarded step wasn&rsquo;t the important part.</p>
+    <p><strong>A quick second lookup isn&rsquo;t enough.</strong> What works is making the final lookup and the save one locked step, so nothing can change in between. In SQLite, a write transaction does that because it locks out other writers. Postgres would need an explicit row lock. The special guarded step wasn&rsquo;t the important part.</p>
   </div>
   <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/part-2-stress-test/README.md">Code, method and full results</a>.</p>
 </section>
@@ -327,9 +327,9 @@ COMMIT;</code></pre>
 <section id="learned" aria-labelledby="learned-title">
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
-    <p>A check can be right and still be too early. Even a re-check right before acting wasn&rsquo;t enough once things really happened at the same time. The check and the action need to be one locked step.</p>
+    <p>A lookup can be right and still be too early: the record can change before the agent acts on it. Even a second lookup right before saving wasn&rsquo;t enough once things really happened at the same time. The final lookup and the save need to be one locked step.</p>
     <p>Safety and usefulness are different things. Method D stopped the wrong credit, but it didn&rsquo;t give any more of the credits customers were really owed. If I had only measured one number, I would have missed that.</p>
-    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so a customer who was owed a credit didn&rsquo;t get it. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
+    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the lookup failed (situation 5), methods B, C and D all said no, so a customer who was owed a credit didn&rsquo;t get it. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
   </div>
 </section>
 
@@ -339,7 +339,7 @@ COMMIT;</code></pre>
     <ul>
       <li>Would this hold on other databases? On Postgres, the same trick can still fail unless you add a lock. I haven&rsquo;t tested that.</li>
       <li>What if the record changes after the credit is added? Method D doesn&rsquo;t handle that.</li>
-      <li>What should the agent do when it hears &ldquo;cancelled&rdquo;? Tell the customer, check again later, or ask a person?</li>
+      <li>What should the agent do when it hears &ldquo;cancelled&rdquo;? Tell the customer, look up the record again later, or ask a person?</li>
       <li>What would a real AI model do in the agent&rsquo;s place? That&rsquo;s a good next experiment.</li>
     </ul>
   </div>
