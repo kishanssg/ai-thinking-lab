@@ -35,6 +35,15 @@ AI Thinking Lab is a habit: **read a paper, ask one question, test it, share wha
 - Claims the code did not test (concurrency, a real model, other databases).
 - Overselling: "proves", "guarantees", "solves". Zero failures is an observation, not proof.
 
+**Common sense for first-time readers**
+- One name per thing across the whole site (Experiment 001: "approach", not way/method; "saved"; "approved").
+- Never use a term before the page has explained it (At a glance must make sense on its own).
+- Say each point once in At a glance and once in its full section. No third repeat.
+- Tell readers where to look before a big table or grid ("look at situation 6, the highlighted row").
+- Bold lead-ins that act as headlines go on their own line, in the headline font.
+- Explain any two columns that sound alike, in one line under the table.
+- End every page with a clear way back ("Back to all experiments").
+
 **Examples must match what the code actually does.** Before using a story, check the mechanism in the code:
 - Experiment 001 revokes a permission (a yes/no flag goes from yes to no). The story is therefore *a manager cancels an approved $20 store credit just after the agent checks it*, not "given twice".
 - Prefer examples where real systems don't already protect you. Refunds were rejected because payment providers already block over-refunds and repeated requests; internal tools like store credit often don't.
