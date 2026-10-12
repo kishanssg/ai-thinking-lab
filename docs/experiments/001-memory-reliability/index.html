@@ -47,8 +47,8 @@
 <div class="intro article-head">
   <p class="section-label">Experiment 001</p>
   <h1>Looking it up first wasn&rsquo;t enough</h1>
-  <p class="deck">A manager cancelled a store credit just after an AI support agent looked up the customer&rsquo;s record. The agent saved the credit anyway. What worked: doing the final lookup and the save as one locked database step.</p>
-  <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
+  <p class="deck">An AI agent looked up the right answer and still made the wrong move. A small experiment about stale memory, a split-second gap, and what closes it.</p>
+  <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 8-minute read (At a glance takes one)</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
@@ -56,8 +56,8 @@
   <dl class="glimpse-list">
     <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent looked up the customer&rsquo;s record. The agent saved the credit anyway.</dd></div>
     <div><dt>What I tried</dt><dd>Four approaches, from &ldquo;trust memory&rdquo; to &ldquo;the database confirms the approval at the moment it saves the credit&rdquo;. Each one ran through the same 6 situations.</dd></div>
-    <div><dt>What worked</dt><dd>Only the approach where the database confirms the approval at the moment of saving stopped the wrong credit. Looking the record up a moment earlier still let it through.</dd></div>
-    <div><dt>Stress test</dt><dd>When the cancellation lands within milliseconds of the save, a second lookup just before saving still let it through in about 1 of 6 tries. A lookup and save done as one locked step let none through.</dd></div>
+    <div><dt>What worked</dt><dd>Only the approach where the database confirms the approval at the moment of saving stopped the wrong credit. Looking the record up a moment earlier still let the wrong credit through.</dd></div>
+    <div><dt>Stress test</dt><dd>When the cancellation lands within milliseconds of the save, a second lookup just before saving still let the wrong credit through in about 1 of 6 tries. A lookup and save done as one locked step let none through.</dd></div>
     <div><dt>The catch</dt><dd>No approach was better at giving customers the credits they really were owed.</dd></div>
     <div><dt>The lesson</dt><dd>Treat an AI agent&rsquo;s memory as a hint, not the truth, and let the system confirm the rule at the moment it saves the change.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the test is small.</dd></div>
@@ -69,8 +69,8 @@
   <h2 id="story-title">The story</h2>
   <div class="prose measure">
     <p>Imagine an AI agent that helps with customer support. Earlier today a $20 goodwill credit was approved for customer #42, and the agent remembers that.</p>
-    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it looks up the customer&rsquo;s record first, it sees the cancellation and says no. Good.</p>
-    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent looks up the record and <em>before</em> it saves the credit? The lookup said &ldquo;approved&rdquo;, and it was right at that moment. The credit still goes on. That gap is what this experiment is about.</p>
+    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it looks up the customer&rsquo;s record first, it sees the cancellation and says no.</p>
+    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent looks up the record and <em>before</em> it saves the credit? The lookup said &ldquo;approved&rdquo;, and it was right at that moment. The credit still gets saved. That gap is what this experiment is about.</p>
     <p>Why store credit and not a refund? Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
     <p>Why I care: AI agents are starting to remember things and then act with real tools, like issuing credits. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
   </div>
@@ -84,7 +84,7 @@
       <thead><tr><th scope="col">Approach</th><th scope="col">What it does</th></tr></thead>
       <tbody>
         <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th><td data-label="What it does">Uses what it remembers. Never looks anything up.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">B</span>Look up first, by choice</th><td data-label="What it does">Looks up the customer&rsquo;s record before giving the credit. Nothing forces it to.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">B</span>Look up first, by choice</th><td data-label="What it does">Looks up the customer&rsquo;s record before saving the credit. Nothing forces it to.</td></tr>
         <tr><th scope="row"><span class="approach-tag">C</span>Look up first, required</th><td data-label="What it does">Same as B, but the credit tool won&rsquo;t run unless a lookup said yes.</td></tr>
         <tr><th scope="row"><span class="approach-tag">D</span>Look up while saving</th><td data-label="What it does">Same as C, and the database looks up the record again at the moment it saves, inside one locked step. The credit is only saved if it is still approved.</td></tr>
       </tbody>
@@ -111,7 +111,7 @@
         <tr>
           <th scope="col">Approach</th>
           <th scope="col">Wrong credits<span class="dir">out of 6 &middot; fewer is better</span></th>
-          <th scope="col">Wrong decisions to give<span class="dir">out of 6 &middot; fewer is better</span></th>
+          <th scope="col">Wrong decisions<span class="dir">decided to give when not approved &middot; out of 6</span></th>
           <th scope="col">Fair credits given<span class="dir">out of 3 &middot; more is better</span></th>
           <th scope="col">Fair credits refused<span class="dir">out of 3 &middot; fewer is better</span></th>
         </tr>
@@ -120,28 +120,28 @@
         <tr>
           <th scope="row"><span class="approach-tag">A</span>Trust memory</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3/6</span></span></td>
-          <td data-label="Wrong decisions to give (of 6)"><span class="metric" data-approach="A" data-metric="incorrect_affirmative_recommendations" data-value="2/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="value">2/6</span></span></td>
+          <td data-label="Wrong decisions (of 6)"><span class="metric" data-approach="A" data-metric="incorrect_affirmative_recommendations" data-value="2/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="value">2/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">B</span>Look up first, by choice</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
-          <td data-label="Wrong decisions to give (of 6)"><span class="metric" data-approach="B" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
+          <td data-label="Wrong decisions (of 6)"><span class="metric" data-approach="B" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">C</span>Look up first, required</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
-          <td data-label="Wrong decisions to give (of 6)"><span class="metric" data-approach="C" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
+          <td data-label="Wrong decisions (of 6)"><span class="metric" data-approach="C" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">D</span>Look up while saving</th>
           <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Wrong decisions to give (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
+          <td data-label="Wrong decisions (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
           <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="D" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
@@ -311,7 +311,7 @@ COMMIT;</code></pre>
 <section id="part-2" aria-labelledby="part2-title">
   <h2 id="part2-title">Part 2: a real stress test</h2>
   <div class="prose measure">
-    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late second lookup would do. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per approach, three runs.</p>
+    <p>The test above couldn&rsquo;t tell whether approach D&rsquo;s special save command mattered, or whether any second lookup just before saving would do as well. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of the save, 3,000 times per approach, three runs.</p>
   </div>
   <div class="table-scroll">
     <table class="compare simple part2-table">
@@ -344,9 +344,10 @@ COMMIT;</code></pre>
   <h2 id="open-title">What I don&rsquo;t know yet</h2>
   <div class="prose measure">
     <ul>
-      <li>Would this hold on other databases? On Postgres, the same trick can still fail unless you add a lock. I haven&rsquo;t tested that.</li>
+      <li>Would this hold on other databases? On Postgres, the same approach can still fail unless the record is explicitly locked. I haven&rsquo;t tested that.</li>
       <li>What if the record changes after the credit is saved? Approach D doesn&rsquo;t handle that.</li>
       <li>What should the agent do when it hears &ldquo;cancelled&rdquo;? Tell the customer, look up the record again later, or ask a person?</li>
+      <li>What happens when the agent&rsquo;s memory carries over between separate conversations, days apart? This test only had one memory from &ldquo;earlier today&rdquo;.</li>
       <li>What would a real AI model do in the agent&rsquo;s place? That&rsquo;s a good next experiment.</li>
     </ul>
   </div>
@@ -378,7 +379,7 @@ python3 experiments/001-memory-reliability/experiment.py --output my-run.json</c
     <div class="measure">
       <ul>
         <li><strong>Wrong credits</strong> (invalid commits): an action saved when it wasn&rsquo;t allowed at that moment. Out of all 6.</li>
-        <li><strong>Wrong decisions to give</strong>: the approach decided to give the credit when it wasn&rsquo;t approved at decision time. Out of all 6.</li>
+        <li><strong>Wrong decisions</strong>: the approach decided to give the credit when it wasn&rsquo;t approved at decision time. Out of all 6.</li>
         <li><strong>Fair credits given</strong>: allowed at save time, and done. Out of the 3 situations where it was allowed (1, 3 and 5).</li>
         <li><strong>Fair credits refused</strong>: allowed at save time, but refused. Out of the same 3.</li>
       </ul>
