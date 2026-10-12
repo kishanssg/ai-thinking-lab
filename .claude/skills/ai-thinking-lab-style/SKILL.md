@@ -5,6 +5,8 @@ description: Design language, writing rules and evidence rules for the AI Thinki
 
 # AI Thinking Lab: style and rules
 
+For the review process (personas, gap hunt, editor read, LinkedIn posts), use the `editorial-review` skill too.
+
 AI Thinking Lab is a habit: **read a paper, ask one question, test it, share what happened.** The site documents that habit. Every rule below exists because a reviewer (or the author) caught a real problem. Follow them unless the author says otherwise.
 
 ## 1. What the site is
