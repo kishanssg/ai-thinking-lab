@@ -83,8 +83,9 @@
   <h2 id="lessons-title" class="section-head">Lessons so far</h2>
   <div class="prose measure">
     <ul>
-      <li><strong>Don&rsquo;t rely on what an AI agent looked up a moment ago.</strong> The answer can change before it acts. When the agent saves a change, the database should confirm the rule is still true and lock the record until the save is done, like a shop confirming your coupon at the till, not at the door. <span class="muted">(001)</span></li>
-      <li><strong>Safer doesn&rsquo;t mean more helpful.</strong> The safest approach stopped every wrong credit, but it still turned away a customer who was owed one, just like the others. Count both kinds of mistake. <span class="muted">(001)</span></li>
+      <li><strong>An AI agent&rsquo;s memory is a hint, not the truth.</strong> What it remembers from earlier may have changed. Before acting, it should fetch the live answer from the real system. <span class="muted">(001)</span></li>
+      <li><strong>Even a fresh answer can change before the agent acts.</strong> The system that saves the change should confirm the rule at that moment and lock the record until it&rsquo;s done, like a shop confirming your coupon at the till, not at the door. <span class="muted">(001)</span></li>
+      <li><strong>Safer doesn&rsquo;t mean more helpful.</strong> The safest approach still turned away a customer who was owed a credit, just like the others. Count both kinds of mistake. <span class="muted">(001)</span></li>
     </ul>
   </div>
 </section>
