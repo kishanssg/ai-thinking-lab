@@ -578,3 +578,26 @@ h1, h2, .banner, .mast-title, caption { font-variant-numeric: lining-nums; }
 }
 
 #main > .front-lead:first-child { margin-top: 36px; }
+
+/* Lesson headlines on their own line, in the headline font */
+#lessons li > strong:first-child,
+#learned p > strong:first-child {
+  display: block;
+  font: 900 22px/1.25 var(--head);
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+#lessons li { margin-bottom: 18px; }
+#learned p { margin-bottom: 20px; }
+
+/* Common-sense pass */
+.figure-note, .compare.simple td.note, .legend, .scope, .comic-note { font-size: 16.5px; color: var(--ink-2); }
+.figure-lead { font-size: 18px; margin: 0 0 12px; max-width: var(--text); }
+.matrix tr.key-row th, .matrix tr.key-row td { background: var(--caption-soft, rgba(255, 224, 102, 0.28)); }
+.matrix tr.key-row th { padding-left: 8px; }
+.situations { margin: 6px 0 0; padding-left: 1.4em; max-width: var(--text); font-size: 18px; line-height: 1.55; }
+.situations li { margin-bottom: 4px; }
+.for-engineers-below { margin: 14px 0 0; font-size: 16px; color: var(--muted); max-width: var(--text); }
+.back-link { margin: 48px 0 0; font-size: 18px; font-weight: 600; }
+.back-link a { text-decoration: none; }
+.back-link a:hover { text-decoration: underline; }
