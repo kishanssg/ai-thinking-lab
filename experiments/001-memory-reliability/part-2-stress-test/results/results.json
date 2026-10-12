@@ -1,0 +1,484 @@
+{
+  "experiment": "001-part-2",
+  "simulation": true,
+  "environment": {
+    "python": "3.13.3",
+    "implementation": "CPython",
+    "platform": "Windows",
+    "release": "11",
+    "version": "10.0.26200",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "cpu_count": 8,
+    "sqlite": "3.49.1",
+    "journal_mode": "wal",
+    "synchronous": "NORMAL",
+    "gil_enabled": true,
+    "switch_interval_s": 0.005
+  },
+  "command": "python experiments/001-memory-reliability/part-2-stress-test/experiment.py",
+  "generated_at_utc": "2026-10-12T00:46:30.748468+00:00",
+  "config": {
+    "think_s": 0.001,
+    "cancel_window_s": 0.003,
+    "hook_wait_s": 2.0,
+    "busy_backoff_s": 0.0002,
+    "max_attempts": 500
+  },
+  "approaches": {
+    "C": "precheck, think, unguarded insert",
+    "E": "precheck, think, re-read, unguarded autocommit insert",
+    "F": "precheck, think, BEGIN IMMEDIATE, re-read, plain insert, COMMIT",
+    "D": "precheck, think, BEGIN IMMEDIATE, INSERT...SELECT WHERE approved=1, COMMIT"
+  },
+  "runs": [
+    {
+      "mode": "forced",
+      "seed": 1,
+      "iterations_per_approach": 3000,
+      "elapsed_s": 42.233,
+      "approaches": {
+        "C": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 0,
+          "credited_invalid": 3000,
+          "busy_gave_up": 0,
+          "agent_busy": 0,
+          "canceller_busy": 0,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 3000,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 0,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 3000,
+            "denominator": 3000,
+            "rate": 1.0
+          },
+          "invalid_among_commits": {
+            "numerator": 3000,
+            "denominator": 3000,
+            "rate": 1.0
+          }
+        },
+        "E": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 0,
+          "credited_invalid": 3000,
+          "busy_gave_up": 0,
+          "agent_busy": 0,
+          "canceller_busy": 0,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 3000,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 0,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 3000,
+            "denominator": 3000,
+            "rate": 1.0
+          },
+          "invalid_among_commits": {
+            "numerator": 3000,
+            "denominator": 3000,
+            "rate": 1.0
+          }
+        },
+        "F": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 3000,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 0,
+          "canceller_busy": 3073,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 0,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          }
+        },
+        "D": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 3000,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 0,
+          "canceller_busy": 3121,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 0,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          }
+        }
+      }
+    },
+    {
+      "mode": "free",
+      "seed": 1,
+      "iterations_per_approach": 3000,
+      "elapsed_s": 49.202,
+      "approaches": {
+        "C": {
+          "refused_precheck": 2,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 2106,
+          "credited_invalid": 892,
+          "busy_gave_up": 0,
+          "agent_busy": 99,
+          "canceller_busy": 713,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2998,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 92,
+          "invalid_after_agent_busy": 92,
+          "invalid_commits": {
+            "numerator": 892,
+            "denominator": 3000,
+            "rate": 0.29733333333333334
+          },
+          "invalid_among_commits": {
+            "numerator": 892,
+            "denominator": 2998,
+            "rate": 0.29753168779186123
+          }
+        },
+        "E": {
+          "refused_precheck": 0,
+          "refused_reread": 822,
+          "refused_guard": 0,
+          "credited_valid": 1655,
+          "credited_invalid": 523,
+          "busy_gave_up": 0,
+          "agent_busy": 523,
+          "canceller_busy": 294,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2178,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 514,
+          "invalid_after_agent_busy": 514,
+          "invalid_commits": {
+            "numerator": 523,
+            "denominator": 3000,
+            "rate": 0.17433333333333334
+          },
+          "invalid_among_commits": {
+            "numerator": 523,
+            "denominator": 2178,
+            "rate": 0.2401285583103765
+          }
+        },
+        "F": {
+          "refused_precheck": 0,
+          "refused_reread": 865,
+          "refused_guard": 0,
+          "credited_valid": 2135,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 70,
+          "canceller_busy": 708,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2135,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 63,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2135,
+            "rate": 0.0
+          }
+        },
+        "D": {
+          "refused_precheck": 1,
+          "refused_reread": 0,
+          "refused_guard": 886,
+          "credited_valid": 2113,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 75,
+          "canceller_busy": 705,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2999,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 69,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2113,
+            "rate": 0.0
+          }
+        }
+      }
+    },
+    {
+      "mode": "free",
+      "seed": 2,
+      "iterations_per_approach": 3000,
+      "elapsed_s": 56.27,
+      "approaches": {
+        "C": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 2132,
+          "credited_invalid": 868,
+          "busy_gave_up": 0,
+          "agent_busy": 109,
+          "canceller_busy": 777,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 83,
+          "invalid_after_agent_busy": 83,
+          "invalid_commits": {
+            "numerator": 868,
+            "denominator": 3000,
+            "rate": 0.28933333333333333
+          },
+          "invalid_among_commits": {
+            "numerator": 868,
+            "denominator": 3000,
+            "rate": 0.28933333333333333
+          }
+        },
+        "E": {
+          "refused_precheck": 0,
+          "refused_reread": 779,
+          "refused_guard": 0,
+          "credited_valid": 1684,
+          "credited_invalid": 537,
+          "busy_gave_up": 0,
+          "agent_busy": 575,
+          "canceller_busy": 331,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2221,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 530,
+          "invalid_after_agent_busy": 530,
+          "invalid_commits": {
+            "numerator": 537,
+            "denominator": 3000,
+            "rate": 0.179
+          },
+          "invalid_among_commits": {
+            "numerator": 537,
+            "denominator": 2221,
+            "rate": 0.24178298063935164
+          }
+        },
+        "F": {
+          "refused_precheck": 0,
+          "refused_reread": 842,
+          "refused_guard": 0,
+          "credited_valid": 2158,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 64,
+          "canceller_busy": 891,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2158,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 58,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2158,
+            "rate": 0.0
+          }
+        },
+        "D": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 815,
+          "credited_valid": 2185,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 103,
+          "canceller_busy": 894,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 82,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2185,
+            "rate": 0.0
+          }
+        }
+      }
+    },
+    {
+      "mode": "free",
+      "seed": 3,
+      "iterations_per_approach": 3000,
+      "elapsed_s": 47.086,
+      "approaches": {
+        "C": {
+          "refused_precheck": 1,
+          "refused_reread": 0,
+          "refused_guard": 0,
+          "credited_valid": 2142,
+          "credited_invalid": 857,
+          "busy_gave_up": 0,
+          "agent_busy": 74,
+          "canceller_busy": 697,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2999,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 73,
+          "invalid_after_agent_busy": 73,
+          "invalid_commits": {
+            "numerator": 857,
+            "denominator": 3000,
+            "rate": 0.2856666666666667
+          },
+          "invalid_among_commits": {
+            "numerator": 857,
+            "denominator": 2999,
+            "rate": 0.2857619206402134
+          }
+        },
+        "E": {
+          "refused_precheck": 0,
+          "refused_reread": 790,
+          "refused_guard": 0,
+          "credited_valid": 1659,
+          "credited_invalid": 551,
+          "busy_gave_up": 0,
+          "agent_busy": 557,
+          "canceller_busy": 291,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2210,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 537,
+          "invalid_after_agent_busy": 537,
+          "invalid_commits": {
+            "numerator": 551,
+            "denominator": 3000,
+            "rate": 0.18366666666666667
+          },
+          "invalid_among_commits": {
+            "numerator": 551,
+            "denominator": 2210,
+            "rate": 0.2493212669683258
+          }
+        },
+        "F": {
+          "refused_precheck": 1,
+          "refused_reread": 853,
+          "refused_guard": 0,
+          "credited_valid": 2146,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 66,
+          "canceller_busy": 823,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 2146,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 57,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2146,
+            "rate": 0.0
+          }
+        },
+        "D": {
+          "refused_precheck": 0,
+          "refused_reread": 0,
+          "refused_guard": 848,
+          "credited_valid": 2152,
+          "credited_invalid": 0,
+          "busy_gave_up": 0,
+          "agent_busy": 76,
+          "canceller_busy": 783,
+          "canceller_gave_up": 0,
+          "cancellation_committed_at_hook": 0,
+          "hook_reached": 3000,
+          "iterations": 3000,
+          "iterations_with_agent_busy": 68,
+          "invalid_after_agent_busy": 0,
+          "invalid_commits": {
+            "numerator": 0,
+            "denominator": 3000,
+            "rate": 0.0
+          },
+          "invalid_among_commits": {
+            "numerator": 0,
+            "denominator": 2152,
+            "rate": 0.0
+          }
+        }
+      }
+    }
+  ]
+}

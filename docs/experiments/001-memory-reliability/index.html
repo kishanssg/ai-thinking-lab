@@ -49,7 +49,7 @@
   <h1>Checking first wasn&rsquo;t enough</h1>
   <p class="deck">A manager cancelled a store credit just after an AI support agent checked it. The agent added the credit anyway. Checking first wasn&rsquo;t enough; the check and the action had to be one locked step.</p>
   <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
-  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the check and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a stress test with 9,000 tries per method.</p>
+  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the check and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a Part 2 stress test with 9,000 tries per method.</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
@@ -58,7 +58,7 @@
     <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent checked. The agent added the credit anyway.</dd></div>
     <div><dt>What I tried</dt><dd>Four ways to stop that, each tested in the same 6 situations.</dd></div>
     <div><dt>What worked</dt><dd>In the one situation built to test this timing, checking first let the wrong credit through. Doing the check <em>inside</em> the step that adds the credit stopped it.</dd></div>
-    <div><dt>Follow-up</dt><dd>A stress test with the cancellation landing within a few milliseconds: a separate re-check just before adding the credit still let it through in about 1 of 6 tries. A locked check-and-add step let none through.</dd></div>
+    <div><dt>Part 2</dt><dd>A stress test with the cancellation landing within a few milliseconds: a separate re-check just before adding the credit still let it through in about 1 of 6 tries. A locked check-and-add step let none through.</dd></div>
     <div><dt>The catch</dt><dd>No method gave more of the credits customers were really owed. Trust memory refused one because its memory was wrong; the three checking methods each refused one because the check broke.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
@@ -72,7 +72,6 @@
     <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent checks the record and <em>before</em> it adds the credit? The check said yes, and it was right when it looked. The credit still goes on. That gap is what this experiment is about.</p>
     <p>Why store credit and not a refund? Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
     <p>Why I care: AI agents are starting to remember things and then act with real tools, like issuing credits. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
-    <p>One honesty note: the test code uses a plain yes/no &ldquo;allowed&rdquo; flag (it calls it a worker and a shift). The store-credit story is an everyday picture of that same check.</p>
   </div>
 </section>
 
@@ -165,10 +164,10 @@
         <tbody>
           <tr>
             <th scope="row">1. Nothing changed<small>Memory: approved. Truth: approved.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
+            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="approved_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
           </tr>
           <tr>
             <th scope="row">2. Memory wrongly says yes<small>Memory: approved. Truth: approval cancelled.</small></th>
@@ -186,10 +185,10 @@
           </tr>
           <tr>
             <th scope="row">4. The account was closed<small>Memory: approved. Truth: account closed.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="account_closed" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="account_closed" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="account_closed" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="account_closed" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
           </tr>
           <tr>
             <th scope="row">5. The check breaks<small>Memory: approved. Truth: approved. The lookup fails.</small></th>
@@ -200,10 +199,10 @@
           </tr>
           <tr>
             <th scope="row">6. Approval cancelled right after the check<small>Memory: approved. Truth: approved, then cancelled.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
-            <td data-label="D &middot; Check while giving"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="approval_cancelled" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-blocked" data-scenario="approval_cancelled" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
           </tr>
         </tbody>
       </table>
@@ -269,60 +268,60 @@
     <div class="measure">
       <p>B and C run an unguarded insert. D runs a conditional insert inside a write transaction (abridged from <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/experiment.py#L53-L74"><code>Store.commit</code></a>):</p>
 <pre tabindex="0"><code>BEGIN IMMEDIATE;
-INSERT INTO assignments (shift, worker)
-SELECT 'toy-shift', id FROM workers
-WHERE id = 'toy-worker' AND eligible = 1;
+INSERT INTO credits (credit_id, customer)
+SELECT 'credit-42', id FROM customers
+WHERE id = 'customer-42' AND approved = 1;
 COMMIT;</code></pre>
-      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency; the <a href="#followup">follow-up</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
+      <p>The caveat: the change in step 2 is applied before D&rsquo;s transaction starts, on one in-memory connection. So <code>BEGIN IMMEDIATE</code> never has another writer to block, and a plain re-read right before an unguarded insert would also have scored 0/6. This test shows that checking at write time catches the change. It does not test the guard under real concurrency; <a href="#part-2">Part 2</a> does. <code>BEGIN IMMEDIATE</code> is there to make the &ldquo;already done?&rdquo; check and the insert one unit against other writers.</p>
     </div>
   </details>
   <details class="eng">
     <summary>For engineers: recorded trace, situation 6, method C <span class="muted">(wrong credit)</span></summary>
-<pre tabindex="0" data-trace="eligibility_flip/C"><code>[
+<pre tabindex="0" data-trace="approval_cancelled/C"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
-  {"kind": "verification", "eligible": true, "reason": "eligible"},
-  {"kind": "decision", "recommended": true, "reason": "eligible", "ground_truth": true},
+  {"kind": "verification", "approved": true, "reason": "approved"},
+  {"kind": "decision", "recommended": true, "reason": "approved", "ground_truth": true},
   {"kind": "state_change", "reason": "injected_before_commit", "state": false},
   {"kind": "ground_truth", "phase": "commit", "state": false},
-  {"kind": "commit_attempt", "committed": true, "guarded": false, "reason": "assigned", "ground_truth": false},
-  {"kind": "final", "assignment_count": 1}
+  {"kind": "commit_attempt", "committed": true, "guarded": false, "reason": "credited", "ground_truth": false},
+  {"kind": "final", "credit_count": 1}
 ]</code></pre>
   </details>
   <details class="eng">
     <summary>For engineers: recorded trace, situation 6, method D <span class="muted">(stopped)</span></summary>
-<pre tabindex="0" data-trace="eligibility_flip/D"><code>[
+<pre tabindex="0" data-trace="approval_cancelled/D"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
-  {"kind": "verification", "eligible": true, "reason": "eligible"},
-  {"kind": "decision", "recommended": true, "reason": "eligible", "ground_truth": true},
+  {"kind": "verification", "approved": true, "reason": "approved"},
+  {"kind": "decision", "recommended": true, "reason": "approved", "ground_truth": true},
   {"kind": "state_change", "reason": "injected_before_commit", "state": false},
   {"kind": "ground_truth", "phase": "commit", "state": false},
-  {"kind": "commit_attempt", "committed": false, "guarded": true, "reason": "ineligible_or_missing", "ground_truth": false},
-  {"kind": "final", "assignment_count": 0}
+  {"kind": "commit_attempt", "committed": false, "guarded": true, "reason": "not_approved_or_closed", "ground_truth": false},
+  {"kind": "final", "credit_count": 0}
 ]</code></pre>
   </details>
 </section>
 
-<section id="followup" aria-labelledby="followup-title">
-  <h2 id="followup-title">Follow-up: a real stress test</h2>
+<section id="part-2" aria-labelledby="part2-title">
+  <h2 id="part2-title">Part 2: a real stress test</h2>
   <div class="prose measure">
-    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late re-check would do. So I ran a tougher version (Experiment 001b). This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per method, three runs.</p>
+    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late re-check would do. So I ran a tougher version as Part 2 of this experiment. This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per method, three runs.</p>
   </div>
   <div class="table-scroll">
-    <table class="compare simple followup-table">
+    <table class="compare simple part2-table">
       <caption>Wrong credits when the cancellation really races the agent</caption>
       <thead><tr><th scope="col">Method</th><th scope="col">Wrong credits</th><th scope="col">What it does</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Check first, required</th><td><span class="metric" data-exp="001b" data-approach="C" data-value="2460/9000"><span class="value">2,460 of 9,000</span> (27%)</span></td><td class="note">The same as method C above.</td></tr>
-        <tr><th scope="row">Re-check just before giving</th><td><span class="metric" data-exp="001b" data-approach="E" data-value="1472/9000"><span class="value">1,472 of 9,000</span> (16%)</span></td><td class="note">Looks again right before giving the credit, as a separate step.</td></tr>
-        <tr><th scope="row">Check and give as one locked step</th><td><span class="metric" data-exp="001b" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and add the credit inside one write transaction that locks out other changes.</td></tr>
-        <tr><th scope="row">Check while giving (method D)</th><td><span class="metric" data-exp="001b" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded step from above, inside a transaction.</td></tr>
+        <tr><th scope="row">Check first, required</th><td><span class="metric" data-exp="part2" data-approach="C" data-value="2617/9000"><span class="value">2,617 of 9,000</span> (29%)</span></td><td class="note">The same as method C above.</td></tr>
+        <tr><th scope="row">Re-check just before giving</th><td><span class="metric" data-exp="part2" data-approach="E" data-value="1611/9000"><span class="value">1,611 of 9,000</span> (18%)</span></td><td class="note">Looks again right before giving the credit, as a separate step.</td></tr>
+        <tr><th scope="row">Check and give as one locked step</th><td><span class="metric" data-exp="part2" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and add the credit inside one write transaction that locks out other changes.</td></tr>
+        <tr><th scope="row">Check while giving (method D)</th><td><span class="metric" data-exp="part2" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded step from above, inside a transaction.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="prose measure">
     <p><strong>A quick re-check isn&rsquo;t enough.</strong> What works is making the check and the action one locked step, so nothing can change in between. In SQLite, a write transaction does that because it locks out other writers. Postgres would need an explicit row lock. The special guarded step wasn&rsquo;t the important part.</p>
   </div>
-  <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001b-concurrent-guard/README.md">Code, method and full results</a>.</p>
+  <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/part-2-stress-test/README.md">Code, method and full results</a>.</p>
 </section>
 
 <section id="learned" aria-labelledby="learned-title">
@@ -352,7 +351,7 @@ COMMIT;</code></pre>
     <ul>
       <li>No AI model was used. A simple fixed rule plays the part of the agent.</li>
       <li>It&rsquo;s small: 6 made-up situations and one yes/no rule.</li>
-      <li>In this test nothing happens at the same time; the change in situation 6 is slotted in on purpose. The follow-up covers real timing, on one laptop and SQLite only.</li>
+      <li>In this test nothing happens at the same time; the change in situation 6 is slotted in on purpose. Part 2 covers real timing, on one laptop and SQLite only.</li>
       <li>The paper doesn&rsquo;t test this timing gap. This is my own extension, not a copy of the MemRiskBench study.</li>
     </ul>
   </div>

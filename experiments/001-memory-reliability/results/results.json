@@ -2,20 +2,20 @@
   "experiment": "001",
   "simulation": true,
   "environment": {
-    "python": "3.13.2",
-    "platform": "Darwin",
-    "machine": "arm64",
+    "python": "3.13.3",
+    "platform": "Windows",
+    "machine": "AMD64",
     "sqlite": "3.49.1"
   },
   "command": "python3 experiments/001-memory-reliability/experiment.py",
-  "generated_at_utc": "2026-09-20T06:08:48.563714+00:00",
+  "generated_at_utc": "2026-10-12T00:43:16.106307+00:00",
   "runs": [
     {
-      "scenario": "eligible_unchanged",
+      "scenario": "approved_unchanged",
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 216667,
+      "latency_ns": 887700,
       "events": [
         {
           "kind": "ground_truth",
@@ -38,21 +38,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligible_unchanged",
+      "scenario": "approved_unchanged",
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 92375,
+      "latency_ns": 459400,
       "events": [
         {
           "kind": "ground_truth",
@@ -62,13 +62,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -80,21 +80,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligible_unchanged",
+      "scenario": "approved_unchanged",
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 79125,
+      "latency_ns": 388900,
       "events": [
         {
           "kind": "ground_truth",
@@ -104,13 +104,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -122,21 +122,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligible_unchanged",
+      "scenario": "approved_unchanged",
       "approach": "D",
       "recommended": true,
       "committed": true,
-      "latency_ns": 79750,
+      "latency_ns": 418800,
       "events": [
         {
           "kind": "ground_truth",
@@ -146,13 +146,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -164,12 +164,12 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": true,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
@@ -178,7 +178,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 70208,
+      "latency_ns": 366700,
       "events": [
         {
           "kind": "ground_truth",
@@ -201,12 +201,12 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": false
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
@@ -215,7 +215,7 @@
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 61458,
+      "latency_ns": 321600,
       "events": [
         {
           "kind": "ground_truth",
@@ -225,13 +225,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": false
         },
         {
@@ -241,11 +241,11 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -254,7 +254,7 @@
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 90250,
+      "latency_ns": 319200,
       "events": [
         {
           "kind": "ground_truth",
@@ -264,13 +264,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": false
         },
         {
@@ -280,11 +280,11 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -293,7 +293,7 @@
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 58667,
+      "latency_ns": 315700,
       "events": [
         {
           "kind": "ground_truth",
@@ -303,13 +303,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": false
         },
         {
@@ -319,11 +319,11 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -332,7 +332,7 @@
       "approach": "A",
       "recommended": false,
       "committed": false,
-      "latency_ns": 65500,
+      "latency_ns": 338500,
       "events": [
         {
           "kind": "ground_truth",
@@ -357,7 +357,7 @@
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -366,7 +366,7 @@
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 80584,
+      "latency_ns": 481500,
       "events": [
         {
           "kind": "ground_truth",
@@ -376,13 +376,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -394,12 +394,12 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
@@ -408,7 +408,7 @@
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 70791,
+      "latency_ns": 432500,
       "events": [
         {
           "kind": "ground_truth",
@@ -418,13 +418,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -436,12 +436,12 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
@@ -450,7 +450,7 @@
       "approach": "D",
       "recommended": true,
       "committed": true,
-      "latency_ns": 73000,
+      "latency_ns": 384300,
       "events": [
         {
           "kind": "ground_truth",
@@ -460,13 +460,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -478,21 +478,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": true,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "worker_missing",
+      "scenario": "account_closed",
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 63125,
+      "latency_ns": 327100,
       "events": [
         {
           "kind": "ground_truth",
@@ -515,21 +515,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": null
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "worker_missing",
+      "scenario": "account_closed",
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 55375,
+      "latency_ns": 288500,
       "events": [
         {
           "kind": "ground_truth",
@@ -539,13 +539,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": null
         },
         {
@@ -555,20 +555,20 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
     {
-      "scenario": "worker_missing",
+      "scenario": "account_closed",
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 54584,
+      "latency_ns": 299800,
       "events": [
         {
           "kind": "ground_truth",
@@ -578,13 +578,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": null
         },
         {
@@ -594,20 +594,20 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
     {
-      "scenario": "worker_missing",
+      "scenario": "account_closed",
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 54500,
+      "latency_ns": 320700,
       "events": [
         {
           "kind": "ground_truth",
@@ -617,13 +617,13 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
-          "reason": "ineligible_or_missing"
+          "approved": false,
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "decision",
           "recommended": false,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": null
         },
         {
@@ -633,11 +633,11 @@
         },
         {
           "kind": "refusal",
-          "reason": "ineligible_or_missing"
+          "reason": "not_approved_or_closed"
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -646,7 +646,7 @@
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 66292,
+      "latency_ns": 349800,
       "events": [
         {
           "kind": "ground_truth",
@@ -669,12 +669,12 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": true
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
@@ -683,7 +683,7 @@
       "approach": "B",
       "recommended": false,
       "committed": false,
-      "latency_ns": 68583,
+      "latency_ns": 308400,
       "events": [
         {
           "kind": "ground_truth",
@@ -693,7 +693,7 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
+          "approved": false,
           "reason": "lookup_error"
         },
         {
@@ -713,7 +713,7 @@
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -722,7 +722,7 @@
       "approach": "C",
       "recommended": false,
       "committed": false,
-      "latency_ns": 61834,
+      "latency_ns": 697300,
       "events": [
         {
           "kind": "ground_truth",
@@ -732,7 +732,7 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
+          "approved": false,
           "reason": "lookup_error"
         },
         {
@@ -752,7 +752,7 @@
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
@@ -761,7 +761,7 @@
       "approach": "D",
       "recommended": false,
       "committed": false,
-      "latency_ns": 62000,
+      "latency_ns": 372200,
       "events": [
         {
           "kind": "ground_truth",
@@ -771,7 +771,7 @@
         },
         {
           "kind": "verification",
-          "eligible": false,
+          "approved": false,
           "reason": "lookup_error"
         },
         {
@@ -791,16 +791,16 @@
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     },
     {
-      "scenario": "eligibility_flip",
+      "scenario": "approval_cancelled",
       "approach": "A",
       "recommended": true,
       "committed": true,
-      "latency_ns": 77417,
+      "latency_ns": 383500,
       "events": [
         {
           "kind": "ground_truth",
@@ -828,21 +828,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": false
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligibility_flip",
+      "scenario": "approval_cancelled",
       "approach": "B",
       "recommended": true,
       "committed": true,
-      "latency_ns": 77459,
+      "latency_ns": 376600,
       "events": [
         {
           "kind": "ground_truth",
@@ -852,13 +852,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -875,21 +875,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": false
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligibility_flip",
+      "scenario": "approval_cancelled",
       "approach": "C",
       "recommended": true,
       "committed": true,
-      "latency_ns": 75667,
+      "latency_ns": 365000,
       "events": [
         {
           "kind": "ground_truth",
@@ -899,13 +899,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -922,21 +922,21 @@
           "kind": "commit_attempt",
           "committed": true,
           "guarded": false,
-          "reason": "assigned",
+          "reason": "credited",
           "ground_truth": false
         },
         {
           "kind": "final",
-          "assignment_count": 1
+          "credit_count": 1
         }
       ]
     },
     {
-      "scenario": "eligibility_flip",
+      "scenario": "approval_cancelled",
       "approach": "D",
       "recommended": true,
       "committed": false,
-      "latency_ns": 78583,
+      "latency_ns": 376600,
       "events": [
         {
           "kind": "ground_truth",
@@ -946,13 +946,13 @@
         },
         {
           "kind": "verification",
-          "eligible": true,
-          "reason": "eligible"
+          "approved": true,
+          "reason": "approved"
         },
         {
           "kind": "decision",
           "recommended": true,
-          "reason": "eligible",
+          "reason": "approved",
           "ground_truth": true
         },
         {
@@ -969,12 +969,12 @@
           "kind": "commit_attempt",
           "committed": false,
           "guarded": true,
-          "reason": "ineligible_or_missing",
+          "reason": "not_approved_or_closed",
           "ground_truth": false
         },
         {
           "kind": "final",
-          "assignment_count": 0
+          "credit_count": 0
         }
       ]
     }
@@ -983,7 +983,7 @@
     "A": {
       "tasks": 6,
       "recommendations": 5,
-      "committed_assignments": 5,
+      "committed_credits": 5,
       "commit_attempts": 5,
       "incorrect_affirmative_recommendations": {
         "numerator": 2,
@@ -1012,15 +1012,15 @@
       },
       "tool_calls": 5,
       "latency_ns": {
-        "min": 63125,
-        "max": 216667,
-        "mean": 93201.5
+        "min": 327100,
+        "max": 887700,
+        "mean": 442216.6666666667
       }
     },
     "B": {
       "tasks": 6,
       "recommendations": 3,
-      "committed_assignments": 3,
+      "committed_credits": 3,
       "commit_attempts": 3,
       "incorrect_affirmative_recommendations": {
         "numerator": 0,
@@ -1049,15 +1049,15 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 55375,
-        "max": 92375,
-        "mean": 72639.0
+        "min": 288500,
+        "max": 481500,
+        "mean": 372666.6666666667
       }
     },
     "C": {
       "tasks": 6,
       "recommendations": 3,
-      "committed_assignments": 3,
+      "committed_credits": 3,
       "commit_attempts": 3,
       "incorrect_affirmative_recommendations": {
         "numerator": 0,
@@ -1086,15 +1086,15 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 54584,
-        "max": 90250,
-        "mean": 72041.83333333333
+        "min": 299800,
+        "max": 697300,
+        "mean": 417116.6666666667
       }
     },
     "D": {
       "tasks": 6,
       "recommendations": 3,
-      "committed_assignments": 2,
+      "committed_credits": 2,
       "commit_attempts": 3,
       "incorrect_affirmative_recommendations": {
         "numerator": 0,
@@ -1123,9 +1123,9 @@
       },
       "tool_calls": 9,
       "latency_ns": {
-        "min": 54500,
-        "max": 79750,
-        "mean": 67750.0
+        "min": 315700,
+        "max": 418800,
+        "mean": 364716.6666666667
       }
     }
   }

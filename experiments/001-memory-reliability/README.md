@@ -1,17 +1,19 @@
 # Experiment 001: Memory Reliability
 
-A stale eligibility flag can cause a fictional worker to be assigned incorrectly. A fresh check helps, but eligibility may change before execution. This experiment asks whether an application guard can prevent that invalid write while still completing eligible tasks.
+A stale approval flag can cause a fictional customer to be credited incorrectly. A fresh check helps, but approval may change before execution. This experiment asks whether an application guard can prevent that invalid write while still completing approved tasks.
 
-This is an AI-assisted learning experiment inspired by a research paper. ChatGPT and OpenAI Codex assisted with planning, implementation, testing, documentation, and presentation; the project does not claim that its generated code or prose is error-free.
+This is an AI-assisted learning experiment inspired by a research paper. ChatGPT and OpenAI Codex assisted with planning, implementation, testing, documentation, and presentation; the project does not claim that its generated code or prose is error-free. Claude Code later renamed the code from a generic worker/shift example to the store-credit wording used on the website; re-running it gave identical logical outcomes for all 24 traces.
+
+A stress test with real concurrency is [Part 2](part-2-stress-test/README.md).
 
 ## Method
 
-Six predetermined fixtures cover unchanged eligibility, stale true, stale false, a missing worker, a failed lookup, and an injected eligibility revocation. All records and rules are synthetic. Each of four approaches runs each fixture against a fresh SQLite database:
+Six predetermined fixtures cover unchanged approval, stale true, stale false, a closed account, a failed lookup, and an injected approval cancellation. All records and rules are synthetic. Each of four approaches runs each fixture against a fresh SQLite database:
 
 - A uses memory and an unguarded write.
 - B voluntarily checks on every task under a fixed simulated policy, then uses an unguarded write.
 - C uses the same policy, but an internal application wrapper requires a positive precheck before writing.
-- D adds a current-eligibility conditional insert inside `BEGIN IMMEDIATE`, enforcing eligibility at assignment time.
+- D adds a current-approval conditional insert inside `BEGIN IMMEDIATE`, enforcing approval at credit time.
 
 C's positive check can become stale. D's write predicate remains authoritative. The wrapper is not an unforgeable authorization system, and the unsafe operations exist only as experimental baselines. See [methodology](methodology.md).
 
@@ -24,18 +26,18 @@ python3 -m unittest discover -s experiments/001-memory-reliability -p 'test_*.py
 python3 experiments/001-memory-reliability/experiment.py
 ```
 
-No packages, network access, model calls, or credentials are needed. The eight tests check all 24 fixture/approach outcomes, the race, eligibility enforcement, idempotency, lookup failure, and event-derived metrics. [Test output](results/tests.txt) and [results](results/results.json) are actual saved runs. Rerunning overwrites the JSON; use `--output` with another path to preserve an additional run. Preserve any failed test logs rather than replacing them.
+No packages, network access, model calls, or credentials are needed. The eight tests check all 24 fixture/approach outcomes, the race, approval enforcement, idempotency, lookup failure, and event-derived metrics. [Test output](results/tests.txt) and [results](results/results.json) are actual saved runs. Rerunning overwrites the JSON; use `--output` with another path to preserve an additional run. Preserve any failed test logs rather than replacing them.
 
 ## Findings
 
-| Approach | Incorrect affirmative recommendations / tasks | Invalid commits / tasks | Completed / eligible tasks | Unnecessary refusals / eligible tasks | Verified / tasks | Tool calls |
+| Approach | Incorrect affirmative recommendations / tasks | Invalid commits / tasks | Completed / approved tasks | Unnecessary refusals / approved tasks | Verified / tasks | Tool calls |
 |---|---:|---:|---:|---:|---:|---:|
 | A | 2/6 | 3/6 | 2/3 | 1/3 | 0/6 | 5 |
 | B | 0/6 | 1/6 | 2/3 | 1/3 | 6/6 | 9 |
 | C | 0/6 | 1/6 | 2/3 | 1/3 | 6/6 | 9 |
 | D | 0/6 | 0/6 | 2/3 | 1/3 | 6/6 | 9 |
 
-All four approaches completed only 2/3 legitimate tasks. D prevented invalid commits in these cases, but refused an eligible worker when lookup failed. A missed a different eligible task because stale memory said false. B and C behaved identically by construction. [Per-scenario findings](findings.md) retain unsafe baseline outcomes.
+All four approaches completed only 2/3 legitimate tasks. D prevented invalid commits in these cases, but refused an approved customer when lookup failed. A missed a different approved task because stale memory said false. B and C behaved identically by construction. [Per-scenario findings](findings.md) retain unsafe baseline outcomes.
 
 ## Interpretation and limits
 

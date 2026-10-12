@@ -37,5 +37,8 @@ jobs:
               assert summary["valid_task_completion"]["denominator"] == eligible
           PY
 
+      - name: Run Experiment 001 Part 2 tests
+        run: python3 -m unittest discover -s experiments/001-memory-reliability/part-2-stress-test -p 'test_*.py' -v
+
       - name: Check published pages against saved results
         run: python3 docs/check_site.py

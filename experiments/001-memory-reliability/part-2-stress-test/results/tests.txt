@@ -1,0 +1,18 @@
+test_all_approaches_credit_when_nothing_changes (test_experiment.HarnessTests.test_all_approaches_credit_when_nothing_changes) ... ok
+test_all_approaches_refuse_when_already_cancelled (test_experiment.HarnessTests.test_all_approaches_refuse_when_already_cancelled) ... ok
+test_audit_trigger_records_approval_seen_by_insert (test_experiment.HarnessTests.test_audit_trigger_records_approval_seen_by_insert) ... ok
+test_cancellation_at_hook_sequentially (test_experiment.HarnessTests.test_cancellation_at_hook_sequentially) ... ok
+test_database_is_file_backed_wal (test_experiment.HarnessTests.test_database_is_file_backed_wal) ... ok
+test_forced_mode_threads_cancel_in_the_gap (test_experiment.HarnessTests.test_forced_mode_threads_cancel_in_the_gap) ... ok
+test_free_mode_accounting_and_guarded_invariant (test_experiment.HarnessTests.test_free_mode_accounting_and_guarded_invariant) ... ok
+test_guard_and_reread_refuse_cancellation_before_their_check (test_experiment.HarnessTests.test_guard_and_reread_refuse_cancellation_before_their_check) ... ok
+test_in_flight_cancellation_is_invisible_to_a_late_reread (test_experiment.HarnessTests.test_in_flight_cancellation_is_invisible_to_a_late_reread) ... ok
+test_retry_counts_busy_and_gives_up (test_experiment.HarnessTests.test_retry_counts_busy_and_gives_up) ... ok
+test_retry_does_not_swallow_other_errors (test_experiment.HarnessTests.test_retry_does_not_swallow_other_errors) ... ok
+test_retry_succeeds_after_lock_released (test_experiment.HarnessTests.test_retry_succeeds_after_lock_released) ... ok
+test_summarize_ratios (test_experiment.HarnessTests.test_summarize_ratios) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.270s
+
+OK

@@ -38,7 +38,7 @@ AI Thinking Lab is a habit: **read a paper, ask one question, test it, share wha
 - Experiment 001 revokes a permission (a yes/no flag goes from yes to no). The story is therefore *a manager cancels an approved $20 store credit just after the agent checks it*, not "given twice".
 - Prefer examples where real systems don't already protect you. Refunds were rejected because payment providers already block over-refunds and repeated requests; internal tools like store credit often don't.
 - If a situation only fails because the test removed a safeguard on purpose, say so on the page.
-- When a story stands in for generic code (the code says worker/shift), add one honesty line saying so.
+- Keep the code's names in the same words as the story (Experiment 001 uses customer / credit / approved). If you rename code, re-run it and confirm the logical results are identical before saving.
 
 **Paper attribution:** say what the paper studies and what is my own extension. Never imply the authors were involved. Don't reproduce text from the paper.
 
@@ -62,12 +62,13 @@ AI Thinking Lab is a habit: **read a paper, ask one question, test it, share wha
 
 ## 4. Evidence rules (non-negotiable)
 
-- Never edit experiment code, fixtures or saved results to make the site look better. A follow-up is a new folder (e.g. `experiments/001b-.../`).
+- Never edit experiment code, fixtures or saved results to make the site look better.
+- **One experiment = one folder, one page, one row in the log.** A follow-up to an experiment goes inside it as a part: `experiments/001-memory-reliability/part-2-stress-test/`. The page shows it as "Part 2", never as a separate experiment number.
 - Every number shown on a page must come from a results file:
   - Summary metrics: `<span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6">` with a visible value and one `<i class="on">` per counted task.
   - Matrix cells: `data-scenario`, `data-approach`, `data-recommended`, `data-committed`, and an outcome class.
   - Traces: `<pre data-trace="scenario/approach">` with the exact recorded events.
-  - Follow-up totals: `data-exp="001b" data-approach="E" data-value="1472/9000"`.
+  - Part totals: `data-exp="part2" data-approach="E" data-value="1611/9000"` (summed from that part's results file).
 - Run `python docs/check_site.py` before every commit. It verifies numbers, segments, cell styles, traces and links, and runs in CI. If you add a new kind of number, extend the checker.
 - The Experiment 001 page was generated once from the results files; it is now edited by hand. When editing, keep every data attribute intact and re-run the checker.
 
@@ -82,7 +83,7 @@ AI Thinking Lab is a habit: **read a paper, ask one question, test it, share wha
 
 ## 6. Adding a new experiment
 
-1. New folder `experiments/00N-name/` with code, tests, fixtures, `results/`, README, methodology, findings, attribution.
+1. New folder `experiments/00N-name/` with code, tests, fixtures, `results/`, README, methodology, findings, attribution. Later parts go in `part-2-.../` inside it, with their own tests and a CI step.
 2. New page `docs/experiments/00N-name/index.html` following the structure in section 1.
 3. Add a row to the homepage log (one-line finding) and, if earned, a line to "Lessons so far" citing the experiment numbers.
 4. Extend `docs/check_site.py` so the new page's numbers are verified.

@@ -31,27 +31,27 @@ class ExperimentTests(unittest.TestCase):
         with Store(True) as store:
             self.assertTrue(store.verify(False))
             store.change(False)
-            self.assertEqual(store.commit(True), (False, 'ineligible_or_missing'))
-            self.assertEqual(store.assignment_count(), 0)
+            self.assertEqual(store.commit(True), (False, 'not_approved_or_closed'))
+            self.assertEqual(store.credit_count(), 0)
 
-    def test_guard_allows_eligible_and_is_idempotent(self):
+    def test_guard_allows_approved_and_is_idempotent(self):
         with Store(True) as store:
-            self.assertEqual(store.commit(True), (True, 'assigned'))
-            self.assertEqual(store.commit(True), (False, 'already_assigned'))
-            self.assertEqual(store.assignment_count(), 1)
+            self.assertEqual(store.commit(True), (True, 'credited'))
+            self.assertEqual(store.commit(True), (False, 'already_credited'))
+            self.assertEqual(store.credit_count(), 1)
 
-    def test_guard_rejects_missing_and_ineligible(self):
+    def test_guard_rejects_closed_and_unapproved(self):
         for state in (None, False):
             with self.subTest(state=state), Store(state) as store:
-                self.assertEqual(store.commit(True), (False, 'ineligible_or_missing'))
-                self.assertEqual(store.assignment_count(), 0)
+                self.assertEqual(store.commit(True), (False, 'not_approved_or_closed'))
+                self.assertEqual(store.credit_count(), 0)
 
     def test_required_precheck_cannot_be_bypassed(self):
         from experiment import required_commit
         with Store(True) as store:
             self.assertEqual(required_commit(store, False, False),
                              (False, 'required_precheck_missing'))
-            self.assertEqual(store.assignment_count(), 0)
+            self.assertEqual(store.credit_count(), 0)
 
     def test_lookup_failure_fails_closed(self):
         fixture = next(f for f in load_fixtures() if f['id'] == 'lookup_fails')

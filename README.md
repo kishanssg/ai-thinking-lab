@@ -12,8 +12,7 @@ ChatGPT and OpenAI Codex assist with research planning, implementation, testing,
 
 | Experiment | Research question | Implementation |
 |---|---|---|
-| [001: Memory Reliability](experiments/001-memory-reliability/README.md) · [visual results](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/) | Can current authoritative checks prevent assignments based on stale memory, including a change between checking and writing? | Deterministic Python/SQLite simulation; six synthetic cases, four workflows, eight tests |
-| [001b: Concurrent Guard](experiments/001b-concurrent-guard/README.md) · [summary](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/#followup) | Under real concurrency, is a late re-read enough, or must the check and the write share one transaction? | Threaded Python/SQLite harness; two connections, 3,000 iterations per approach, thirteen tests |
+| [001: Memory Reliability](experiments/001-memory-reliability/README.md) · [visual results](https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/) | Can a fresh approval check stop an agent from adding a store credit that was just cancelled, and does a late re-check work under real concurrency? | Part 1: deterministic Python/SQLite simulation, six synthetic cases, four approaches, eight tests. [Part 2](experiments/001-memory-reliability/part-2-stress-test/README.md): threaded two-connection stress test, 3,000 iterations per approach per run, thirteen tests |
 
 The lab’s repeatable learning process is: read and cite a paper; understand its ideas; identify a narrower practical question; build a small experiment with AI assistance; define expected behavior and run tests; preserve observed results and limitations; explain what was learned and what remains unknown. Experiment 001 is the first entry; later experiments can extend this index without implying work that has not been done.
 
@@ -26,6 +25,10 @@ With Python 3.13, from the repository root:
 ```sh
 python3 -m unittest discover -s experiments/001-memory-reliability -p 'test_*.py' -v
 python3 experiments/001-memory-reliability/experiment.py
+
+# Part 2: stress test (about three minutes)
+python3 -m unittest discover -s experiments/001-memory-reliability/part-2-stress-test -p 'test_*.py' -v
+python3 experiments/001-memory-reliability/part-2-stress-test/experiment.py --output part2-run.json
 ```
 
 The runner saves 24 task traces and computed summaries in [results.json](experiments/001-memory-reliability/results/results.json). Logical outcomes repeat; timestamps and local timings vary. The [test workflow](.github/workflows/tests.yml) runs on pushes and pull requests.
@@ -47,14 +50,14 @@ python3 -m http.server 8000 --directory docs   # then open http://localhost:8000
 
 These are our simulation results, not the cited researchers' results.
 
-| Approach | Incorrect affirmative recommendations / all tasks | Invalid commits / all tasks | Legitimate completion / eligible tasks | Unnecessary refusals / eligible tasks |
+| Approach | Incorrect affirmative recommendations / all tasks | Invalid commits / all tasks | Legitimate completion / approved tasks | Unnecessary refusals / approved tasks |
 |---|---:|---:|---:|---:|
 | A: memory only | 2/6 | 3/6 | 2/3 | 1/3 |
 | B: simulated voluntary precheck | 0/6 | 1/6 | 2/3 | 1/3 |
 | C: application-required precheck | 0/6 | 1/6 | 2/3 | 1/3 |
-| D: precheck + atomic eligibility guard | 0/6 | 0/6 | 2/3 | 1/3 |
+| D: precheck + guarded insert | 0/6 | 0/6 | 2/3 | 1/3 |
 
-D blocked the injected invalid write. **All four approaches completed only 2 of 3 eligible tasks.** A missed the stale-false task; B/C/D refused the lookup-failure task. Verification did not improve aggregate legitimate completion. [Findings](experiments/001-memory-reliability/findings.md) and [methodology](experiments/001-memory-reliability/methodology.md) provide scenario outcomes and denominators.
+D blocked the injected invalid write. **All four approaches completed only 2 of 3 approved tasks.** A missed the stale-false task; B/C/D refused the lookup-failure task. Verification did not improve aggregate legitimate completion. [Findings](experiments/001-memory-reliability/findings.md) and [methodology](experiments/001-memory-reliability/methodology.md) provide scenario outcomes and denominators.
 
 ## Limits and research context
 
