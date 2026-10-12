@@ -83,8 +83,8 @@
   <h2 id="lessons-title" class="section-head">Lessons so far</h2>
   <div class="prose measure">
     <ul>
-      <li>When an AI agent looks something up, the answer can change before it acts. The final lookup and the action need to happen as one locked database step, so nothing can change in between. <span class="muted">(001)</span></li>
-      <li>Measure safety and usefulness separately. The safest method gave no more fair credits than the least safe one. <span class="muted">(001)</span></li>
+      <li><strong>Don&rsquo;t rely on what an AI agent looked up a moment ago.</strong> The answer can change before it acts. When the agent saves a change, the database should confirm the rule is still true and lock the record until the save is done, like a shop confirming your coupon at the till, not at the door. <span class="muted">(001)</span></li>
+      <li><strong>Safer doesn&rsquo;t mean more helpful.</strong> The safest approach stopped every wrong credit, but it still turned away a customer who was owed one, just like the others. Count both kinds of mistake. <span class="muted">(001)</span></li>
     </ul>
   </div>
 </section>

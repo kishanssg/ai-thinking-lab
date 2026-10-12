@@ -60,6 +60,7 @@
     <div><dt>What worked</dt><dd>In the one situation built to test this timing, looking up the record first let the wrong credit through. Looking it up again <em>inside</em> the database step that saves the credit stopped it.</dd></div>
     <div><dt>Part 2</dt><dd>A stress test with the cancellation landing within a few milliseconds: a second lookup just before saving the credit, done as a separate step, still let it through in about 1 of 6 tries. Doing the lookup and the save as one locked database step let none through.</dd></div>
     <div><dt>The catch</dt><dd>No method gave more of the credits customers were really owed. Trust memory refused one because its memory was wrong; the three methods that look up the record each refused one because the lookup failed.</dd></div>
+    <div><dt>The lesson</dt><dd>Don&rsquo;t rely on what an AI agent looked up a moment ago. When it saves a change, the database should confirm the rule is still true and lock the record until the save is done, like a shop confirming your coupon at the till.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
 </section>
@@ -327,9 +328,10 @@ COMMIT;</code></pre>
 <section id="learned" aria-labelledby="learned-title">
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
-    <p>A lookup can be right and still be too early: the record can change before the agent acts on it. Even a second lookup right before saving wasn&rsquo;t enough once things really happened at the same time. The final lookup and the save need to be one locked step.</p>
-    <p>Safety and usefulness are different things. Method D stopped the wrong credit, but it didn&rsquo;t give any more of the credits customers were really owed. If I had only measured one number, I would have missed that.</p>
-    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the lookup failed (situation 5), methods B, C and D all said no, so a customer who was owed a credit didn&rsquo;t get it. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
+    <p><strong>1. Looking something up first doesn&rsquo;t protect you.</strong> An AI agent can look up a record, get the right answer, and then act on it a split second after it stopped being true.</p>
+    <p><strong>2. The fix belongs in the system, not in the agent.</strong> When the agent saves the credit, the database itself should confirm the credit is still approved, and hold the record so nobody can change it until the save is done. It&rsquo;s like a shop confirming your coupon at the till, not when you walked in the door.</p>
+    <p><strong>3. Safer doesn&rsquo;t mean more helpful.</strong> The safest approach stopped every wrong credit, but it still turned away a customer who was owed one, just like the other approaches. When the lookup itself failed, it said no to be safe. That&rsquo;s probably the right call with money, but it&rsquo;s still a cost, and I only noticed it because I measured wrong credits and missed credits separately.</p>
+    <p>If you build AI agents that change real things (add money, send messages, book slots), this is the part worth copying: the tool that makes the change should confirm the rule at the moment it makes the change.</p>
   </div>
 </section>
 
