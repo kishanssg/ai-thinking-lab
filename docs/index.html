@@ -70,13 +70,13 @@
         <tr>
           <td class="num">001</td>
           <td><a href="experiments/001-memory-reliability/"><strong>Checking first wasn&rsquo;t enough</strong></a><br><span class="small muted">From the MemRiskBench paper &middot; Sep 2026</span></td>
-          <td class="q">An AI refund agent checked an order, someone refunded it a moment later, and the refund went out twice. Checking inside the refund step stopped it.</td>
+          <td class="q">A manager cancelled a store credit just after an AI support agent checked it, and the agent added it anyway. Doing the check inside the step that adds the credit stopped it.</td>
           <td class="small"><a href="experiments/001-memory-reliability/">Read</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001-memory-reliability">Code</a></td>
         </tr>
         <tr>
           <td class="num">001b</td>
           <td><a href="experiments/001-memory-reliability/#followup"><strong>The same test, under real timing</strong></a><br><span class="small muted">Follow-up to 001 &middot; Oct 2026</span></td>
-          <td class="q">A quick re-check just before acting still failed about 1 time in 6. Only a check and action done as one locked step held up.</td>
+          <td class="q">With the cancellation racing the agent within milliseconds, a separate re-check still let it through in about 1 of 6 tries. A locked check-and-act step let none through.</td>
           <td class="small"><a href="experiments/001-memory-reliability/#followup">Read</a><br><a href="https://github.com/kishanssg/ai-thinking-lab/tree/main/experiments/001b-concurrent-guard">Code</a></td>
         </tr>
       </tbody>
@@ -90,7 +90,7 @@
   <div class="prose measure">
     <ul>
       <li>A check can go out of date before you act on it. The check and the action need to happen as one locked step. <span class="muted">(001, 001b)</span></li>
-      <li>Measure safety and usefulness separately. A safer method can still turn away the people it should help. <span class="muted">(001)</span></li>
+      <li>Measure safety and usefulness separately. The safest method gave no more fair credits than the least safe one. <span class="muted">(001)</span></li>
     </ul>
   </div>
 </section>

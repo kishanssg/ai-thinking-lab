@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Experiment 001: Checking first wasn&rsquo;t enough &middot; AI Thinking Lab</title>
-<meta name="description" content="A small test of the safety net around an AI refund agent. Checking first still let 1 of 6 wrong refunds through. Checking again at the moment of refunding stopped all of them.">
+<meta name="description" content="A small test of the safety net around an AI support agent: a credit approval is cancelled just after the agent checks it. Checking first still let the wrong credit through; doing the check in the same locked step as giving the credit stopped it.">
 <meta name="author" content="kishanssg">
 <link rel="canonical" href="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
@@ -14,13 +14,13 @@
 <link rel="stylesheet" href="../../assets/site.css">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="AI Thinking Lab">
-<meta property="og:title" content="Checking first still let a double refund through">
-<meta property="og:description" content="A small test of the safety net around an AI refund agent: checking first let 1 of 6 wrong refunds through; checking again at the moment of refunding stopped all of them.">
+<meta property="og:title" content="Checking first still let a wrong credit through">
+<meta property="og:description" content="An approval was cancelled just after an AI support agent checked it. Checking first still let the credit through; one locked check-and-give step stopped it.">
 <meta property="og:url" content="https://kishanssg.github.io/ai-thinking-lab/experiments/001-memory-reliability/">
 <meta property="og:image" content="https://kishanssg.github.io/ai-thinking-lab/assets/og-experiment-001.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Wrong refunds out of 6: trust memory 3, check first by choice 1, check first required 1, check while refunding 0.">
+<meta property="og:image:alt" content="Stress test: 1,472 wrong credits in 9,000 tries with a separate re-check, 0 in 9,000 when the check and the action were one locked step.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -47,19 +47,19 @@
 <div class="intro article-head">
   <p class="section-label">Experiment 001 &middot; Feature</p>
   <h1>Checking first wasn&rsquo;t enough</h1>
-  <p class="deck">In a small test, an AI refund agent&rsquo;s safety check still let a double refund through. Checking again at the moment of refunding stopped it.</p>
+  <p class="deck">A manager cancelled a store credit just after an AI support agent checked it. The agent added the credit anyway. Checking first wasn&rsquo;t enough; the check and the action had to be one locked step.</p>
   <p class="byline">By <a href="https://github.com/kishanssg">kishanssg</a> &middot; September 2026 &middot; 5-minute read</p>
-  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed with a guarded write. Python + SQLite, 24 recorded runs.</p>
+  <p class="for-engineers">For engineers: a time-of-check / time-of-use (TOCTOU) bug in a simulated agent tool call, fixed by doing the check and the write in one locked transaction. Python + SQLite; 24 recorded runs, plus a stress test with 9,000 tries per method.</p>
 </div>
 
 <section class="glimpse" aria-labelledby="glimpse-title">
   <h2 id="glimpse-title">At a glance</h2>
   <dl class="glimpse-list">
-    <div><dt>The problem</dt><dd>An AI agent that handles refunds remembered that an order could be refunded. Someone else refunded it first. The agent refunded it again.</dd></div>
+    <div><dt>The problem</dt><dd>An AI support agent remembered that a customer was approved for a $20 store credit. A manager cancelled the approval just after the agent checked. The agent added the credit anyway.</dd></div>
     <div><dt>What I tried</dt><dd>Four ways to stop that, each tested in the same 6 situations.</dd></div>
-    <div><dt>What worked</dt><dd>Doing the check <em>inside</em> the refund step stopped every wrong refund: <span class="num">0 of 6</span>. Checking a moment earlier still let <span class="num">1 of 6</span> through.</dd></div>
-    <div><dt>Follow-up</dt><dd>A tougher stress test showed a quick re-check just before refunding still fails about 1 time in 6. The check and the refund must be <em>one locked step</em>.</dd></div>
-    <div><dt>The catch</dt><dd>No method gave more of the fair refunds. Each one refused a fair refund once, for different reasons.</dd></div>
+    <div><dt>What worked</dt><dd>In the one situation built to test this timing, checking first let the wrong credit through. Doing the check <em>inside</em> the step that adds the credit stopped it.</dd></div>
+    <div><dt>Follow-up</dt><dd>A stress test with the cancellation landing within a few milliseconds: a separate re-check just before adding the credit still let it through in about 1 of 6 tries. A locked check-and-add step let none through.</dd></div>
+    <div><dt>The catch</dt><dd>No method gave more of the credits customers were really owed. Trust memory refused one because its memory was wrong; the three checking methods each refused one because the check broke.</dd></div>
     <div><dt>Keep in mind</dt><dd>I tested the safety net around an AI agent, not the AI itself. A simple rule plays the agent, and the whole test is small.</dd></div>
   </dl>
 </section>
@@ -67,11 +67,12 @@
 <section id="story" aria-labelledby="story-title">
   <h2 id="story-title">The story</h2>
   <div class="prose measure">
-    <p>Imagine an AI agent that handles refunds for an online shop. Earlier today it learned that order #42 can be refunded, and it remembers that.</p>
-    <p>If the agent trusts its memory, it might refund an order that was already refunded. If it checks first, it sees the change and says no. Good.</p>
-    <p>But what if a teammate refunds the order in the tiny gap <em>after</em> the agent checks and <em>before</em> it sends the money? The check said yes, and it was right when it looked. The refund still goes out, and the shop pays twice. That gap is what this experiment is about.</p>
-    <p>Why I care: AI agents are starting to remember things and then act with real tools, like sending money. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
-    <p>One honesty note: the test code uses a plain yes/no &ldquo;allowed&rdquo; flag (it calls it a worker and a shift). The refund story is an everyday picture of that same check.</p>
+    <p>Imagine an AI agent that helps with customer support. Earlier today a $20 goodwill credit was approved for customer #42, and the agent remembers that.</p>
+    <p>Then the customer withdraws the complaint and a manager cancels the credit. If the agent trusts its memory, it adds a credit the customer is no longer owed. If it checks the customer&rsquo;s record first, it sees the cancellation and says no. Good.</p>
+    <p>But what if the manager cancels it in the tiny gap <em>after</em> the agent checks the record and <em>before</em> it adds the credit? The check said yes, and it was right when it looked. The credit still goes on. That gap is what this experiment is about.</p>
+    <p>Why store credit and not a refund? Payment providers won&rsquo;t refund more than was paid, and many let you tag a request so it can&rsquo;t be processed twice. Internal tools, like adding store credit, often have no such protection. That&rsquo;s where an AI agent with a tool can slip.</p>
+    <p>Why I care: AI agents are starting to remember things and then act with real tools, like issuing credits. I read <a href="https://arxiv.org/abs/2609.14976">MemRiskBench</a>, a research paper about the ways AI memory goes wrong, including using something after it was taken back. The paper doesn&rsquo;t test this timing gap. That part is my own small extension.</p>
+    <p>One honesty note: the test code uses a plain yes/no &ldquo;allowed&rdquo; flag (it calls it a worker and a shift). The store-credit story is an everyday picture of that same check.</p>
   </div>
 </section>
 
@@ -83,13 +84,13 @@
       <thead><tr><th scope="col">Way</th><th scope="col">What it does</th></tr></thead>
       <tbody>
         <tr><th scope="row"><span class="approach-tag">A</span>Trust memory</th><td data-label="What it does">Uses what it remembers. Never checks.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th><td data-label="What it does">Looks up the order before refunding. Nothing forces it to.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th><td data-label="What it does">Same as B, but the refund tool won&rsquo;t run unless a check said yes.</td></tr>
-        <tr><th scope="row"><span class="approach-tag">D</span>Check while refunding</th><td data-label="What it does">Same as C, and the refund only goes through if the order is still refundable at that exact moment.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">B</span>Check first, by choice</th><td data-label="What it does">Looks up the customer&rsquo;s record before giving the credit. Nothing forces it to.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">C</span>Check first, required</th><td data-label="What it does">Same as B, but the credit tool won&rsquo;t run unless a check said yes.</td></tr>
+        <tr><th scope="row"><span class="approach-tag">D</span>Check while giving</th><td data-label="What it does">Same as C, and the credit is only added if the customer is still owed it at that exact moment.</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;someone refunds it right after the check&rdquo;. That makes 24 tests.</p>
+  <p class="measure muted" style="margin-top:16px">Each way was tested in the same 6 situations, such as &ldquo;nothing changed&rdquo;, &ldquo;memory is wrong&rdquo; and &ldquo;approval cancelled right after the check&rdquo;. That makes 24 tests.</p>
 </section>
 
 <section id="results" aria-labelledby="results-title">
@@ -101,40 +102,40 @@
       <thead>
         <tr>
           <th scope="col">Method</th>
-          <th scope="col">Wrong refunds<span class="dir">out of 6 &middot; fewer is better</span></th>
+          <th scope="col">Wrong credits<span class="dir">out of 6 &middot; fewer is better</span></th>
           <th scope="col">Wrong &ldquo;yes&rdquo; decisions<span class="dir">out of 6 &middot; fewer is better</span></th>
-          <th scope="col">Fair refunds given<span class="dir">out of 3 &middot; more is better</span></th>
-          <th scope="col">Fair refunds refused<span class="dir">out of 3 &middot; fewer is better</span></th>
+          <th scope="col">Fair credits given<span class="dir">out of 3 &middot; more is better</span></th>
+          <th scope="col">Fair credits refused<span class="dir">out of 3 &middot; fewer is better</span></th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <th scope="row"><span class="approach-tag">A</span>Trust memory</th>
-          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3/6</span></span></td>
+          <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="A" data-metric="invalid_commits" data-value="3/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="value">3/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="A" data-metric="incorrect_affirmative_recommendations" data-value="2/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="value">2/6</span></span></td>
-          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="A" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="A" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">B</span>Check first, by choice</th>
-          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
+          <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="B" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="B" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="B" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="B" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
           <th scope="row"><span class="approach-tag">C</span>Check first, required</th>
-          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
+          <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="C" data-metric="invalid_commits" data-value="1/6"><span class="segs bad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">1/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="C" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="C" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="C" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
         <tr>
-          <th scope="row"><span class="approach-tag">D</span>Check while refunding</th>
-          <td data-label="Wrong refunds (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
+          <th scope="row"><span class="approach-tag">D</span>Check while giving</th>
+          <td data-label="Wrong credits (of 6)"><span class="metric" data-approach="D" data-metric="invalid_commits" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
           <td data-label="Wrong “yes” decisions (of 6)"><span class="metric" data-approach="D" data-metric="incorrect_affirmative_recommendations" data-value="0/6"><span class="segs bad" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="value">0/6</span></span></td>
-          <td data-label="Fair refunds given (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
-          <td data-label="Fair refunds refused (of 3)"><span class="metric" data-approach="D" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
+          <td data-label="Fair credits given (of 3)"><span class="metric" data-approach="D" data-metric="valid_task_completion" data-value="2/3"><span class="segs good" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span class="value">2/3</span></span></td>
+          <td data-label="Fair credits refused (of 3)"><span class="metric" data-approach="D" data-metric="unnecessary_refusals" data-value="1/3"><span class="segs miss" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span class="value">1/3</span></span></td>
         </tr>
       </tbody>
     </table>
@@ -144,11 +145,11 @@
   <div class="figure">
     <h3 id="matrix-title">All 24 tests</h3>
     <ul class="legend" aria-label="Legend">
-      <li><span class="swatch o-write"></span>Refunded, correctly</li>
+      <li><span class="swatch o-write"></span>Given, correctly</li>
       <li><span class="swatch o-refuse"></span>Said no, correctly</li>
-      <li><span class="swatch o-blocked"></span>Stopped at the moment of refunding</li>
-      <li><span class="swatch o-invalid"></span>Wrong refund</li>
-      <li><span class="swatch o-missed"></span>Refused a fair refund</li>
+      <li><span class="swatch o-blocked"></span>Stopped at the moment of giving</li>
+      <li><span class="swatch o-invalid"></span>Wrong credit (no longer approved)</li>
+      <li><span class="swatch o-missed"></span>Refused a fair credit</li>
     </ul>
     <div class="table-scroll">
       <table class="matrix" id="scenario-matrix" aria-labelledby="matrix-title">
@@ -158,60 +159,60 @@
             <th scope="col"><span class="approach-tag">A</span>Trust memory</th>
             <th scope="col"><span class="approach-tag">B</span>Check, by choice</th>
             <th scope="col"><span class="approach-tag">C</span>Check, required</th>
-            <th scope="col"><span class="approach-tag">D</span>Check while refunding</th>
+            <th scope="col"><span class="approach-tag">D</span>Check while giving</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">1. Nothing changed<small>Memory: refundable. Truth: refundable.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Refunded</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Refunded</b><span>both checks said yes</span></span></td>
+            <th scope="row">1. Nothing changed<small>Memory: approved. Truth: approved.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="eligible_unchanged" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
           </tr>
           <tr>
-            <th scope="row">2. Memory wrongly says yes<small>Memory: refundable. Truth: already refunded.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
+            <th scope="row">2. Memory wrongly says yes<small>Memory: approved. Truth: approval cancelled.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="stale_true" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
             <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="stale_true" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
             <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="stale_true" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="stale_true" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check said no</span></span></td>
           </tr>
           <tr>
-            <th scope="row">3. Memory wrongly says no<small>Memory: not refundable. Truth: refundable.</small></th>
+            <th scope="row">3. Memory wrongly says no<small>Memory: not approved. Truth: approved.</small></th>
             <td data-label="A &middot; Trust memory"><span class="cell o-missed" data-scenario="stale_false" data-approach="A" data-recommended="false" data-committed="false"><b>Refused</b><span>memory said no</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Refunded</b><span>check said yes</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Refunded</b><span>both checks said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-write" data-scenario="stale_false" data-approach="B" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-write" data-scenario="stale_false" data-approach="C" data-recommended="true" data-committed="true"><b>Given</b><span>check said yes</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-write" data-scenario="stale_false" data-approach="D" data-recommended="true" data-committed="true"><b>Given</b><span>both checks said yes</span></span></td>
           </tr>
           <tr>
-            <th scope="row">4. The order no longer exists<small>Memory: refundable. Truth: no such order.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
+            <th scope="row">4. The account was closed<small>Memory: approved. Truth: account closed.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="worker_missing" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
             <td data-label="B &middot; Check, by choice"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="B" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
             <td data-label="C &middot; Check, required"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="C" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-refuse" data-scenario="worker_missing" data-approach="D" data-recommended="false" data-committed="false"><b>Said no</b><span>check found nothing</span></span></td>
           </tr>
           <tr>
-            <th scope="row">5. The check breaks<small>Memory: refundable. Truth: refundable. The lookup fails.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Refunded</b><span>memory said yes</span></span></td>
+            <th scope="row">5. The check breaks<small>Memory: approved. Truth: approved. The lookup fails.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-write" data-scenario="lookup_fails" data-approach="A" data-recommended="true" data-committed="true"><b>Given</b><span>memory said yes</span></span></td>
             <td data-label="B &middot; Check, by choice"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="B" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
             <td data-label="C &middot; Check, required"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="C" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-missed" data-scenario="lookup_fails" data-approach="D" data-recommended="false" data-committed="false"><b>Refused</b><span>check failed, so no</span></span></td>
           </tr>
           <tr>
-            <th scope="row">6. Someone refunds it right after the check<small>Memory: refundable. Truth: refundable, then already refunded.</small></th>
-            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>memory said yes</span></span></td>
-            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>check was out of date</span></span></td>
-            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong refund</b><span>check was out of date</span></span></td>
-            <td data-label="D &middot; Check while refunding"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
+            <th scope="row">6. Approval cancelled right after the check<small>Memory: approved. Truth: approved, then cancelled.</small></th>
+            <td data-label="A &middot; Trust memory"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="A" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>memory said yes</span></span></td>
+            <td data-label="B &middot; Check, by choice"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="B" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
+            <td data-label="C &middot; Check, required"><span class="cell o-invalid" data-scenario="eligibility_flip" data-approach="C" data-recommended="true" data-committed="true"><b>Wrong credit</b><span>check was out of date</span></span></td>
+            <td data-label="D &middot; Check while giving"><span class="cell o-blocked" data-scenario="eligibility_flip" data-approach="D" data-recommended="true" data-committed="false"><b>Stopped</b><span>second check said no</span></span></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="figure-note">Each box is one recorded test. The raw records are in <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/results.json">results.json</a>.</p>
+    <p class="figure-note">Each box is one recorded test. The raw records are in <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/results/results.json">results.json</a>. Situation 4 is a bit artificial: a real system would reject a closed account. The test removes that safeguard on purpose, to see what memory alone does.</p>
   </div>
 
   <div class="callout">
-    <p><strong>Row 6 is the one that matters.</strong> It&rsquo;s the only place where &ldquo;check while refunding&rdquo; did better than &ldquo;check first&rdquo;.</p>
+    <p><strong>Row 6 is the one that matters.</strong> It&rsquo;s the only place where &ldquo;check while giving&rdquo; did better than &ldquo;check first&rdquo;.</p>
   </div>
 </section>
 
@@ -220,26 +221,26 @@
   <p class="measure muted">Situation 6, as a comic strip.</p>
 
   <figure class="comic" aria-labelledby="comic-title">
-    <figcaption class="comic-title" id="comic-title">The Refund Agent <span>Situation 6, in five panels</span></figcaption>
+    <figcaption class="comic-title" id="comic-title">The Support Agent <span>Situation 6, in five panels</span></figcaption>
     <div class="panels">
       <div class="panel">
         <p class="caption-box"><span class="sr-only">Panel 1, </span>Earlier</p>
-        <p class="bubble"><span class="sr-only">The agent says: </span>I remember: order #42 can be refunded.</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The refund agent holds a memory note that says order 42 is refundable."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">MEMORY</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
+        <p class="bubble"><span class="sr-only">The agent says: </span>I remember: customer #42 is approved for a $20 credit.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The support agent holds a memory note that says customer 42 is approved for a credit."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">MEMORY</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel">
         <p class="caption-box"><span class="sr-only">Panel 2, </span>Step 1 &middot; The check</p>
-        <p class="bubble"><span class="sr-only">The agent says: </span>Let me check&hellip; Yes, still refundable.</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent looks at order 42 through a magnifying glass. It shows a green tick."><g transform="translate(25 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><circle cx="118" cy="98" r="14" class="ink fill-none"/><line x1="108" y1="108" x2="96" y2="121" class="ink" style="stroke-width:5"/><g transform="translate(145 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M12 36 L20 44 L33 27" class="ink ok-stroke" style="stroke-width:5"/></g></svg>
+        <p class="bubble"><span class="sr-only">The agent says: </span>Let me check&hellip; Yes, still approved.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent looks up customer 42 through a magnifying glass. It shows a green tick."><g transform="translate(25 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><circle cx="118" cy="98" r="14" class="ink fill-none"/><line x1="108" y1="108" x2="96" y2="121" class="ink" style="stroke-width:5"/><g transform="translate(145 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle" style="font-size:9px">#42</text><path d="M12 36 L20 44 L33 27" class="ink ok-stroke" style="stroke-width:5"/></g></svg>
       </div>
       <div class="panel">
-        <p class="caption-box"><span class="sr-only">Panel 3, </span>Step 2 &middot; Someone else acts</p>
-        <p class="bubble"><span class="sr-only">A teammate says: </span>I just refunded #42 myself.</p>
-        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="A teammate stands by order 42, which now shows a red cross and a stamp saying refunded."><g transform="translate(25 52)"><path d="M8 92 Q8 44 25 40 Q42 44 42 92 Z" class="ink fill-shirt2"/><circle cx="25" cy="20" r="14" class="ink fill-panel"/><path d="M11 17 Q14 4 26 5 Q38 5 39 17 Q32 10 24 12 Q17 12 11 17 Z" class="fill-ink"/><circle cx="20" cy="19" r="1.8" class="fill-ink"/><circle cx="30" cy="19" r="1.8" class="fill-ink"/><path d="M19 23 Q25 28 31 23" class="ink"/></g><g transform="translate(120 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g><g transform="translate(150 62) rotate(-10)"><rect x="-60.0" y="-16" width="120" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">REFUNDED</text></g></svg>
+        <p class="caption-box"><span class="sr-only">Panel 3, </span>Step 2 &middot; A manager acts</p>
+        <p class="bubble"><span class="sr-only">A manager says: </span>Complaint withdrawn. I just cancelled #42&rsquo;s credit.</p>
+        <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="A manager stands by customer 42, whose record now shows a red cross and a stamp saying cancelled."><g transform="translate(25 52)"><path d="M8 92 Q8 44 25 40 Q42 44 42 92 Z" class="ink fill-shirt2"/><circle cx="25" cy="20" r="14" class="ink fill-panel"/><path d="M11 17 Q14 4 26 5 Q38 5 39 17 Q32 10 24 12 Q17 12 11 17 Z" class="fill-ink"/><circle cx="20" cy="19" r="1.8" class="fill-ink"/><circle cx="30" cy="19" r="1.8" class="fill-ink"/><path d="M19 23 Q25 28 31 23" class="ink"/></g><g transform="translate(120 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle" style="font-size:9px">#42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g><g transform="translate(150 62) rotate(-10)"><rect x="-66.0" y="-16" width="132" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">CANCELLED</text></g></svg>
       </div>
       <div class="panel">
         <p class="caption-box"><span class="sr-only">Panel 4, </span>Step 3</p>
-        <p class="bubble"><span class="sr-only">The agent says: </span>I already checked. Sending the refund!</p>
+        <p class="bubble"><span class="sr-only">The agent says: </span>I already checked. Adding the credit!</p>
         <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent holds up its old note that still says yes."><g transform="translate(30 60) scale(1.0)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(120 80)"><rect x="0" y="0" width="70" height="46" rx="3" class="ink fill-note"/><text x="35" y="14" class="svg-label" text-anchor="middle">OLD ANSWER</text><path d="M22 26 L31 35 L48 18" class="ink ok-stroke" style="stroke-width:4"/></g></svg>
       </div>
       <div class="panel panel-split">
@@ -247,20 +248,20 @@
         <div class="split">
           <div class="half o-invalid">
             <p class="half-label">Methods A, B and C</p>
-            <p class="bubble"><span class="sr-only">The agent says: </span>Refund sent!</p>
-            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent sends the money. A red stamp says paid twice."><g transform="translate(15 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(78 100)"><rect x="0" y="0" width="58" height="32" rx="3" class="ink fill-cash"/><circle cx="29" cy="16" r="9" class="ink"/><text x="29" y="21" class="svg-cash" text-anchor="middle">$</text></g><g transform="translate(140 64) rotate(-10)"><rect x="-73.0" y="-16" width="146" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">PAID TWICE</text></g></svg>
-            <p class="verdict"><span aria-hidden="true">&#10005;</span> The shop pays twice</p>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Credit added!</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent adds a $20 store credit. A red stamp says not owed."><g transform="translate(15 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 35 Q30 40 38 35" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(78 100)"><rect x="0" y="0" width="62" height="38" rx="5" class="ink fill-cash"/><text x="31" y="17" class="svg-label" text-anchor="middle">STORE CREDIT</text><text x="31" y="32" class="svg-cash" text-anchor="middle">$20</text></g><g transform="translate(140 64) rotate(-10)"><rect x="-66.0" y="-16" width="132" height="32" rx="3" class="stamp-no"/><text x="0" y="6" text-anchor="middle" class="stamp-text stamp-text-no">NOT OWED</text></g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10005;</span> The customer gets $20 they&rsquo;re no longer owed</p>
           </div>
           <div class="half o-blocked">
             <p class="half-label">Method D</p>
-            <p class="bubble"><span class="sr-only">The agent says: </span>Checking again as I refund&hellip; Already refunded. Nothing sent.</p>
-            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent checks order 42 again while refunding and sees the red cross."><g transform="translate(20 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 37 L38 37" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(140 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle">ORDER #42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g></svg>
-            <p class="verdict"><span aria-hidden="true">&#10003;</span> No money goes out</p>
+            <p class="bubble"><span class="sr-only">The agent says: </span>Checking again as I add it&hellip; Cancelled. Nothing added.</p>
+            <svg viewBox="0 0 220 150" class="scene" role="img" aria-label="The agent checks customer 42 again while adding the credit and sees the red cross."><g transform="translate(20 60) scale(0.9)"><line x1="30" y1="3" x2="30" y2="12" class="ink"/><circle cx="30" cy="4" r="3.5" class="ink fill-accent"/><rect x="8" y="12" width="44" height="30" rx="8" class="ink fill-panel"/><circle cx="22" cy="26" r="4" class="fill-ink"/><circle cx="38" cy="26" r="4" class="fill-ink"/><path d="M22 37 L38 37" class="ink"/><rect x="14" y="45" width="32" height="30" rx="5" class="ink fill-panel"/><circle cx="30" cy="59" r="5" class="ink fill-accent"/></g><g transform="translate(140 72)"><rect x="2" y="6" width="40" height="50" rx="3" class="ink fill-white"/><rect x="14" y="2" width="16" height="8" rx="2" class="fill-ink"/><text x="22" y="19" class="svg-label" text-anchor="middle" style="font-size:9px">#42</text><path d="M13 27 L31 45 M31 27 L13 45" class="ink no-stroke" style="stroke-width:5"/></g></svg>
+            <p class="verdict"><span aria-hidden="true">&#10003;</span> No credit added</p>
           </div>
         </div>
       </div>
     </div>
-    <p class="comic-note">In the test, step 2 is slotted in on purpose, one step after another. There was no real AI and no real teammate: a simple rule plays the agent.</p>
+    <p class="comic-note">In the test, step 2 is slotted in on purpose, one step after another. There was no real AI and no real manager: a simple rule plays the agent.</p>
   </figure>
 
   <details class="eng">
@@ -276,7 +277,7 @@ COMMIT;</code></pre>
     </div>
   </details>
   <details class="eng">
-    <summary>For engineers: recorded trace, situation 6, method C <span class="muted">(wrong refund)</span></summary>
+    <summary>For engineers: recorded trace, situation 6, method C <span class="muted">(wrong credit)</span></summary>
 <pre tabindex="0" data-trace="eligibility_flip/C"><code>[
   {"kind": "ground_truth", "phase": "initial", "state": true, "memory": true},
   {"kind": "verification", "eligible": true, "reason": "eligible"},
@@ -304,22 +305,22 @@ COMMIT;</code></pre>
 <section id="followup" aria-labelledby="followup-title">
   <h2 id="followup-title">Follow-up: a real stress test</h2>
   <div class="prose measure">
-    <p>The test above couldn&rsquo;t tell whether the special refund step mattered, or whether any late re-check would do. So I ran a tougher version (Experiment 001b). This time the teammate&rsquo;s change really happened at the same moment as the agent&rsquo;s refund, 3,000 times per method, three runs.</p>
+    <p>The test above couldn&rsquo;t tell whether the special guarded step mattered, or whether any late re-check would do. So I ran a tougher version (Experiment 001b). This time the manager&rsquo;s cancellation really raced the agent, landing within a few milliseconds of it, 3,000 times per method, three runs.</p>
   </div>
   <div class="table-scroll">
     <table class="compare simple followup-table">
-      <caption>Wrong refunds when things really happen at the same time</caption>
-      <thead><tr><th scope="col">Method</th><th scope="col">Wrong refunds</th><th scope="col">What it does</th></tr></thead>
+      <caption>Wrong credits when the cancellation really races the agent</caption>
+      <thead><tr><th scope="col">Method</th><th scope="col">Wrong credits</th><th scope="col">What it does</th></tr></thead>
       <tbody>
         <tr><th scope="row">Check first, required</th><td><span class="metric" data-exp="001b" data-approach="C" data-value="2460/9000"><span class="value">2,460 of 9,000</span> (27%)</span></td><td class="note">The same as method C above.</td></tr>
-        <tr><th scope="row">Re-check just before refunding</th><td><span class="metric" data-exp="001b" data-approach="E" data-value="1472/9000"><span class="value">1,472 of 9,000</span> (16%)</span></td><td class="note">Looks again right before refunding, as a separate step.</td></tr>
-        <tr><th scope="row">Check and refund as one locked step</th><td><span class="metric" data-exp="001b" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and refund inside one database transaction.</td></tr>
-        <tr><th scope="row">Check while refunding (method D)</th><td><span class="metric" data-exp="001b" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded refund from above, inside a transaction.</td></tr>
+        <tr><th scope="row">Re-check just before giving</th><td><span class="metric" data-exp="001b" data-approach="E" data-value="1472/9000"><span class="value">1,472 of 9,000</span> (16%)</span></td><td class="note">Looks again right before giving the credit, as a separate step.</td></tr>
+        <tr><th scope="row">Check and give as one locked step</th><td><span class="metric" data-exp="001b" data-approach="F" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">Re-check and add the credit inside one write transaction that locks out other changes.</td></tr>
+        <tr><th scope="row">Check while giving (method D)</th><td><span class="metric" data-exp="001b" data-approach="D" data-value="0/9000"><span class="value">0 of 9,000</span></span></td><td class="note">The guarded step from above, inside a transaction.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="prose measure">
-    <p><strong>A quick re-check isn&rsquo;t enough.</strong> What works is making the check and the refund one locked step, so nothing can change in between. In SQLite that means a write transaction. The special guarded refund wasn&rsquo;t the important part.</p>
+    <p><strong>A quick re-check isn&rsquo;t enough.</strong> What works is making the check and the action one locked step, so nothing can change in between. In SQLite, a write transaction does that because it locks out other writers. Postgres would need an explicit row lock. The special guarded step wasn&rsquo;t the important part.</p>
   </div>
   <p class="measure small muted">These rates come from one laptop and change from run to run. Zero is what the database&rsquo;s locking should guarantee, but it&rsquo;s still an observation, not a proof. Only SQLite was tested. <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001b-concurrent-guard/README.md">Code, method and full results</a>.</p>
 </section>
@@ -328,8 +329,8 @@ COMMIT;</code></pre>
   <h2 id="learned-title">What I learned</h2>
   <div class="prose measure">
     <p>A check can be right and still be too early. Even a re-check right before acting wasn&rsquo;t enough once things really happened at the same time. The check and the action need to be one locked step.</p>
-    <p>Safety and usefulness are different things. Method D stopped the wrong refund, but it didn&rsquo;t give any more of the fair refunds. If I had only measured one number, I would have missed that.</p>
-    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so a customer who deserved a refund didn&rsquo;t get one. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
+    <p>Safety and usefulness are different things. Method D stopped the wrong credit, but it didn&rsquo;t give any more of the credits customers were really owed. If I had only measured one number, I would have missed that.</p>
+    <p>Saying &ldquo;no&rdquo; when unsure has a cost. When the check broke (situation 5), methods B, C and D all said no, so a customer who was owed a credit didn&rsquo;t get it. For money that&rsquo;s probably the right call, but it&rsquo;s still a cost.</p>
   </div>
 </section>
 
@@ -338,8 +339,8 @@ COMMIT;</code></pre>
   <div class="prose measure">
     <ul>
       <li>Would this hold on other databases? On Postgres, the same trick can still fail unless you add a lock. I haven&rsquo;t tested that.</li>
-      <li>What if the order changes after the refund is sent? Method D doesn&rsquo;t handle that.</li>
-      <li>What should the agent do when it hears &ldquo;already refunded&rdquo;? Tell the customer, check again later, or ask a person?</li>
+      <li>What if the record changes after the credit is added? Method D doesn&rsquo;t handle that.</li>
+      <li>What should the agent do when it hears &ldquo;cancelled&rdquo;? Tell the customer, check again later, or ask a person?</li>
       <li>What would a real AI model do in the agent&rsquo;s place? That&rsquo;s a good next experiment.</li>
     </ul>
   </div>
@@ -370,10 +371,10 @@ python3 experiments/001-memory-reliability/experiment.py --output my-run.json</c
     <summary>For engineers: how each number is counted, and all the files</summary>
     <div class="measure">
       <ul>
-        <li><strong>Wrong refunds</strong> (invalid commits): an action saved when it wasn&rsquo;t allowed at that moment. Out of all 6.</li>
+        <li><strong>Wrong credits</strong> (invalid commits): an action saved when it wasn&rsquo;t allowed at that moment. Out of all 6.</li>
         <li><strong>Wrong &ldquo;yes&rdquo; decisions</strong>: the method decided to act when it wasn&rsquo;t allowed at decision time. Out of all 6.</li>
-        <li><strong>Fair refunds given</strong>: allowed at save time, and done. Out of the 3 situations where it was allowed (1, 3 and 5).</li>
-        <li><strong>Fair refunds refused</strong>: allowed at save time, but refused. Out of the same 3.</li>
+        <li><strong>Fair credits given</strong>: allowed at save time, and done. Out of the 3 situations where it was allowed (1, 3 and 5).</li>
+        <li><strong>Fair credits refused</strong>: allowed at save time, but refused. Out of the same 3.</li>
       </ul>
       <p>Full definitions are in the <a href="https://github.com/kishanssg/ai-thinking-lab/blob/main/experiments/001-memory-reliability/methodology.md">methodology</a>.</p>
     </div>

@@ -41,7 +41,7 @@ python3 docs/check_site.py
 python3 -m http.server 8000 --directory docs   # then open http://localhost:8000/
 ```
 
-![Comic strip from the Experiment 001 page: a refund agent checks order #42, a teammate refunds it first, and only the check-at-the-moment-of-refunding method avoids paying twice](docs/assets/experiment-001-desktop.png)
+![Comic strip from the Experiment 001 page: a support agent checks that customer #42 is approved for a store credit, a manager cancels it just after, and only the method that checks inside the same step avoids adding it](docs/assets/experiment-001-desktop.png)
 
 ## Observed results
 
